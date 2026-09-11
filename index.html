@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hugo Kae</title>
+<meta name="description" content="Hugo Kae — photography">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="site-name">Hugo Kae</a>
+  <a href="contact.html" class="contact-btn">Contact</a>
+</header>
+
+<main class="gallery">
+  <button class="nav-arrow nav-prev" id="prevBtn" aria-label="Previous image">&#8249;</button>
+
+  <figure class="gallery-figure">
+    <img id="galleryImage" src="" alt="" draggable="false">
+    <figcaption id="galleryCaption"></figcaption>
+  </figure>
+
+  <button class="nav-arrow nav-next" id="nextBtn" aria-label="Next image">&#8250;</button>
+</main>
+
+<footer class="site-footer">
+  <p>&copy; <span id="year"></span> Hugo Kae. All images on this site are copyright protected.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
