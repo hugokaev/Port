@@ -266,16 +266,7 @@ a {
   }
 
   .nav-arrow {
-    font-size: 28px;
-    padding: 8px 10px;
-  }
-
-  .nav-prev {
-    left: 4px;
-  }
-
-  .nav-next {
-    right: 4px;
+    display: none;
   }
 
   .contact-main {
