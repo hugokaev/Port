@@ -43,6 +43,12 @@ const PHOTOS = [
   { src: "images/Value(1)Boot, 2024.webp", title: "Boot, 2024" },
 ];
 
+// Order always follows the Value(n) number in the filename, highest first.
+PHOTOS.sort((a, b) => {
+  const val = (s) => parseInt((s.match(/Value\((\d+)\)/) || [0, 0])[1], 10);
+  return val(b.src) - val(a.src);
+});
+
 (function () {
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
