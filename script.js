@@ -2,6 +2,11 @@
 // "src" must point to an image in the images/ folder.
 // "title" contains the caption (filename after Value(number))
 const PHOTOS = [
+  { src: "images/Value(51)Chasing,2026.webp", title: "Chasing,2026" },
+  { src: "images/Value(50)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026" },
+  { src: "images/Value(48)Chasing, 2026.webp", title: "Chasing, 2026" },
+  { src: "images/Value(45)Audio, Fijolla, 2026.webp", title: "Audio, Fijolla, 2026" },
+  { src: "images/Value(41)Manon Servage, 2026.webp", title: "Manon Servage, 2026" },
   { src: "images/Value(31)Chasing,2026.webp", title: "Chasing,2026" },
   { src: "images/Value(30)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026" },
   { src: "images/Value(29)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026" },
@@ -10,11 +15,13 @@ const PHOTOS = [
   { src: "images/Value(26)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026" },
   { src: "images/Value(25)Manon Servage for Volume, 2026.webp", title: "Manon Servage for Volume, 2026" },
   { src: "images/Value(24)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026" },
-  { src: "images/Value(23)Chasing, 2026.webp", title: "Chasing, 2026" },
   { src: "images/Value(23)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026" },
+  { src: "images/Value(23)Chasing, 2026.webp", title: "Chasing, 2026" },
   { src: "images/Value(22)Manon Servage, 2026.webp", title: "Manon Servage, 2026" },
+  { src: "images/Value(21)Manon Servage for Volume, 2026.webp", title: "Manon Servage for Volume, 2026" },
   { src: "images/Value(21)Chasing, 2026.webp", title: "Chasing, 2026" },
   { src: "images/Value(20)Milan Here, 2026.webp", title: "Milan Here, 2026" },
+  { src: "images/Value(19)Boko Yout for Pohoda, 2026.webp", title: "Boko Yout for Pohoda, 2026" },
   { src: "images/Value(19)Boko Yout for Pohoda,2026.webp", title: "Boko Yout for Pohoda,2026" },
   { src: "images/Value(18)Manon Servage for Volume, 2026.webp", title: "Manon Servage for Volume, 2026" },
   { src: "images/Value(17)Manon Servage, 2026.webp", title: "Manon Servage, 2026" },
