@@ -66,19 +66,18 @@ const PHOTOS = [
   });
 
   // Mobile: click left/right halves to navigate
-  if (window.innerWidth <= 640) {
-    document.addEventListener("click", (e) => {
-      if (e.target.closest(".topbar")) return; // ignore header clicks
-      if (e.clientY < 60) return; // ignore top area where contact button is
+  document.addEventListener("click", (e) => {
+    if (window.innerWidth > 640) return; // only on mobile
+    if (e.target.closest(".topbar")) return; // ignore header clicks
+    if (e.clientY < 60) return; // ignore top area where contact button is
 
-      const midpoint = window.innerWidth / 2;
-      if (e.clientX < midpoint) {
-        show(index - 1);
-      } else {
-        show(index + 1);
-      }
-    });
-  }
+    const midpoint = window.innerWidth / 2;
+    if (e.clientX < midpoint) {
+      show(index - 1);
+    } else {
+      show(index + 1);
+    }
+  });
 
   // basic touch swipe
   let touchStartX = null;
