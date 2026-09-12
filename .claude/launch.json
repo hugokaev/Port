@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "static-site",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4173"],
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/MAC/Desktop/Website && python3 -m http.server 4173"],
       "port": 4173
     }
   ]
