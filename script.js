@@ -21,7 +21,6 @@ const PHOTOS = [
   { src: "images/Value(21)Chasing, 2026.webp", title: "Chasing, 2026" },
   { src: "images/Value(20)Milan Here, 2026.webp", title: "Milan Here, 2026" },
   { src: "images/Value(19)Boko Yout for Pohoda, 2026.webp", title: "Boko Yout for Pohoda, 2026" },
-  { src: "images/Value(19)Boko Yout for Pohoda,2026.webp", title: "Boko Yout for Pohoda,2026" },
   { src: "images/Value(18)Manon Servage for Volume, 2026.webp", title: "Manon Servage for Volume, 2026" },
   { src: "images/Value(17)Manon Servage, 2026.webp", title: "Manon Servage, 2026" },
   { src: "images/Value(16)Boko Yout for Pohoda, 2026.webp", title: "Boko Yout for Pohoda, 2026" },
