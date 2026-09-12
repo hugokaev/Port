@@ -232,37 +232,63 @@ a {
 
 @media (max-width: 640px) {
   .topbar {
-    padding: 22px 24px;
+    padding: 16px 20px;
+    background: transparent;
+    display: block;
+    position: fixed;
+  }
+
+  .site-name {
+    font-size: 14px;
+    position: absolute;
+    left: 20px;
+    top: 16px;
+  }
+
+  .contact-btn {
+    position: absolute;
+    right: 20px;
+    top: 16px;
+    font-size: 11px;
   }
 
   .gallery {
-    padding: 100px 24px 50px;
+    padding: 40px 16px 30px;
+  }
+
+  .gallery-figure img {
+    max-height: 95vh;
+  }
+
+  .gallery-figure figcaption {
+    font-size: 11px;
+    margin-top: 12px;
   }
 
   .nav-arrow {
-    font-size: 36px;
-    padding: 10px 12px;
+    font-size: 28px;
+    padding: 8px 10px;
   }
 
   .nav-prev {
-    left: 8px;
+    left: 4px;
   }
 
   .nav-next {
-    right: 8px;
+    right: 4px;
   }
 
   .contact-main {
-    padding: 120px 24px 60px;
+    padding: 80px 24px 40px;
   }
 
   .contact-grid {
     grid-template-columns: 1fr;
-    gap: 50px;
-    padding: 50px 0;
+    gap: 40px;
+    padding: 40px 0;
   }
 
   .site-footer {
-    padding: 24px;
+    padding: 20px;
   }
 }
