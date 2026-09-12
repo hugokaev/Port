@@ -43,8 +43,8 @@ a {
   justify-content: space-between;
   padding: 28px 40px;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(4px);
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .contact-btn {
@@ -90,23 +90,27 @@ a {
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 120px 100px 80px;
+  padding: 100px 60px 20px;
   min-height: 0;
+  z-index: 1;
+  overflow: visible;
 }
 
 .gallery-figure {
   margin: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   max-width: 620px;
   width: 100%;
+  overflow: visible;
+  z-index: 10;
 }
 
 .gallery-figure img {
   display: block;
   max-width: 100%;
-  max-height: 68vh;
+  max-height: 90vh;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -120,13 +124,14 @@ a {
 }
 
 .gallery-figure figcaption {
-  margin-top: 32px;
+  margin-top: 16px;
   font-size: 13px;
   color: var(--muted);
-  text-align: center;
+  text-align: left;
   letter-spacing: 0.03em;
   min-height: 1.4em;
   transition: opacity 0.3s ease;
+  align-self: flex-start;
 }
 
 .nav-arrow {
@@ -220,6 +225,7 @@ a {
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--faint);
+  display: none;
 }
 
 /* ---------- responsive ---------- */

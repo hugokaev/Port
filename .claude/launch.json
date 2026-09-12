@@ -4,7 +4,7 @@
     {
       "name": "static-site",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4173", "--directory", "/Users/MAC/Desktop/Website", "--bind", "127.0.0.1"],
+      "runtimeArgs": ["-m", "http.server", "4173"],
       "port": 4173
     }
   ]
