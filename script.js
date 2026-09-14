@@ -55,6 +55,26 @@ PHOTOS.sort((a, b) => {
 
   let index = 0;
 
+  // Keep neighbouring photos in the browser cache so navigation is instant.
+  // Referenced by the map so the fetches are not garbage collected mid-flight.
+  const AHEAD = 4;
+  const BEHIND = 2;
+  const preloaded = new Map();
+
+  function preload(i) {
+    const src = PHOTOS[(i + PHOTOS.length) % PHOTOS.length].src;
+    if (preloaded.has(src)) return;
+    const im = new Image();
+    im.decoding = "async";
+    im.src = src;
+    preloaded.set(src, im);
+  }
+
+  function preloadAround(i) {
+    for (let n = 1; n <= AHEAD; n++) preload(i + n);
+    for (let n = 1; n <= BEHIND; n++) preload(i - n);
+  }
+
   function show(i) {
     index = (i + PHOTOS.length) % PHOTOS.length;
     const photo = PHOTOS[index];
@@ -64,6 +84,12 @@ PHOTOS.sort((a, b) => {
     img.alt = photo.title || "";
 
     caption.textContent = [photo.title, photo.detail].filter(Boolean).join(", ");
+
+    // An already-cached photo fires no load event, so reveal it immediately
+    // rather than leaving the frame blank.
+    if (img.complete && img.naturalWidth) img.classList.add("is-loaded");
+
+    preloadAround(index);
   }
 
   img.addEventListener("load", () => img.classList.add("is-loaded"));
