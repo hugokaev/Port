@@ -8,7 +8,11 @@
 
   const N = PHOTOS.length;
   const cellSize = () => (innerWidth <= 640 ? 112 : 160);
-  const GAP = 18;
+  // Cells are nudged off the lattice so the field does not read as a
+  // grid; the gap has to carry that wander without letting photos touch.
+  const GAP = 26;
+  const JX = 9, JY = 6;
+  const DIRS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
 
   const thumb = (i) => "../" + PHOTOS[i].src.replace("images/web/", "images/thumb/");
 
@@ -24,12 +28,41 @@
     im.src = thumb(i);
   });
 
-  // Which photo belongs at a lattice cell. Stepping by 7 across rows
-  // keeps all six neighbours different, and it is deterministic, so
-  // panning back to a spot shows the same photo again.
+  // Stable pseudo-random value in [0,1) for a cell. Deterministic, so
+  // panning away and back shows the same photo in the same spot rather
+  // than reshuffling underneath you.
+  function noise(q, r, salt) {
+    let h = Math.imul(q + 0x1f1f, 0x27d4eb2d) ^
+            Math.imul(r + 0x7a7a, 0x165667b1) ^
+            Math.imul(salt, 0x9e3779b1);
+    h ^= h >>> 15;
+    h = Math.imul(h, 0x2545f491);
+    h ^= h >>> 13;
+    h = Math.imul(h, 0x27d4eb2d);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  }
+
+  // A fixed shuffle of the photos. Hashing coordinates straight to a
+  // photo looks random but repeats far too often — at this density a
+  // screenful would show the same shot two or three times. Walking the
+  // lattice linearly instead keeps repeats many cells apart, and the
+  // shuffle removes the run of consecutive photos that would otherwise
+  // band across the screen.
+  const ORDER = (() => {
+    const a = Array.from({ length: N }, (_, i) => i);
+    let s = 0x9e3779b9;
+    for (let i = N - 1; i > 0; i--) {
+      s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+      const j = s % (i + 1);
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  })();
+
   function photoAt(q, r) {
-    const i = (q + 7 * r) % N;
-    return i < 0 ? i + N : i;
+    const i = ((q + 7 * r) % N + N) % N;
+    return ORDER[i];
   }
 
   const pool = new Map(); // "q,r" -> cell record
@@ -81,9 +114,9 @@
     if (!maxW) { maxW = CELL * 0.75; maxH = CELL; }
 
     const pitch = maxW + GAP;
-    // Rows sit closer than a true hexagon, but never closer than a full
-    // cell height, so upright photos in adjacent rows cannot touch.
-    const row = Math.max(maxH + GAP * 0.6, pitch * 0.866);
+    // Rows sit closer than a true hexagon, but leave room for a full
+    // cell height plus the vertical wander, so photos cannot touch.
+    const row = Math.max(maxH + 2 * JY + 8, pitch * 0.866);
 
     // Cells fade to nothing at `radius`, so there is no point building
     // anything beyond that — this is what keeps an infinite grid cheap.
@@ -95,12 +128,12 @@
     const rMax = Math.ceil((-panY + reach) / row);
 
     for (let r = rMin; r <= rMax; r++) {
-      const y = row * r;
       const qMin = Math.floor((-panX - reach) / pitch - r / 2);
       const qMax = Math.ceil((-panX + reach) / pitch - r / 2);
 
       for (let q = qMin; q <= qMax; q++) {
-        const x = pitch * (q + r / 2);
+        const x = pitch * (q + r / 2) + (noise(q, r, 3) - 0.5) * 2 * JX;
+        const y = row * r + (noise(q, r, 4) - 0.5) * 2 * JY;
         const dx = x + panX, dy = y + panY;
         const d = Math.hypot(dx, dy);
         if (d > reach) continue;
