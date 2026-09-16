@@ -7,26 +7,15 @@
   if (!canvas || typeof PHOTOS === "undefined") return;
 
   const N = PHOTOS.length;
-  const cellSize = () => (innerWidth <= 640 ? 112 : 160);
+  const cellSize = () =>
+    parseFloat(getComputedStyle(canvas.parentElement).getPropertyValue("--watch-cell")) || 160;
   // Cells are nudged off the lattice so the field does not read as a
   // grid; the gap has to carry that wander without letting photos touch.
   const GAP = 32;
   const JX = 13, JY = 6;
-  const DIRS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
 
   const thumb = (i) => "../" + PHOTOS[i].src.replace("images/web/", "images/thumb/");
-
-  // Aspect ratios are only known once the thumbnails load; until then a
-  // cell is laid out upright, which is what every photo currently is.
-  const ratios = new Array(N).fill(0);
-  PHOTOS.forEach((p, i) => {
-    const im = new Image();
-    im.addEventListener("load", () => {
-      ratios[i] = im.naturalWidth / im.naturalHeight;
-      render();
-    });
-    im.src = thumb(i);
-  });
+  const ratios = PHOTOS.map((p) => p.ar || 0.75);
 
   // Stable pseudo-random value in [0,1) for a cell. Deterministic, so
   // panning away and back shows the same photo in the same spot rather
@@ -95,28 +84,60 @@
     return it;
   }
 
-  function render() {
-    if (zooming) return;
-
+  // Space the lattice by the widest and tallest photo actually in the
+  // set, not by the square that bounds them. Every photo here is
+  // upright, so pitching on height alone would leave the field far
+  // emptier than it needs to be — while still adapting if a landscape
+  // shot is ever added.
+  function metrics() {
     const CELL = cellSize();
-
-    // Space the lattice by the widest and tallest photo actually in the
-    // set, not by the square that bounds them. Every photo here is
-    // upright, so pitching on height alone would leave the field far
-    // emptier than it needs to be — while still adapting if a landscape
-    // shot is ever added.
     let maxW = 0, maxH = 0;
     for (const r of ratios) {
-      if (!r) continue;
       maxW = Math.max(maxW, r >= 1 ? CELL : CELL * r);
       maxH = Math.max(maxH, r >= 1 ? CELL / r : CELL);
     }
-    if (!maxW) { maxW = CELL * 0.75; maxH = CELL; }
-
     const pitch = maxW + GAP;
     // Rows sit closer than a true hexagon, but leave room for a full
     // cell height plus the vertical wander, so photos cannot touch.
-    const row = Math.max(maxH + 2 * JY + 8, pitch * 0.866);
+    return { CELL, pitch, row: Math.max(maxH + 2 * JY + 8, pitch * 0.866) };
+  }
+
+  // Each row slides sideways by an arbitrary fraction of the pitch. Rows
+  // are already more than a full cell height apart, so nothing here can
+  // collide — and it is what stops columns from lining up down the
+  // screen, which per-cell jitter alone is far too small to break.
+  function cellPos(q, r, m) {
+    return {
+      x: m.pitch * q + noise(0, r, 5) * m.pitch + (noise(q, r, 3) - 0.5) * 2 * JX,
+      y: m.row * r + (noise(q, r, 4) - 0.5) * 2 * JY,
+    };
+  }
+
+  function cellBox(index, CELL) {
+    const ratio = ratios[index] || 0.75;
+    return ratio >= 1
+      ? { w: CELL, h: Math.round(CELL / ratio) }
+      : { w: Math.round(CELL * ratio), h: CELL };
+  }
+
+  // The lattice cell nearest the middle that shows a given photo.
+  function cellFor(index) {
+    let best = null, bestD = Infinity;
+    for (let r = -4; r <= 4; r++) {
+      for (let q = -6; q <= 6; q++) {
+        if (photoAt(q, r) !== index) continue;
+        const d = Math.abs(q) + Math.abs(r) + Math.abs(q + r);
+        if (d < bestD) { bestD = d; best = { q, r }; }
+      }
+    }
+    return best || { q: 0, r: 0 };
+  }
+
+  function render() {
+    if (zooming) return;
+
+    const m = metrics();
+    const CELL = m.CELL, pitch = m.pitch, row = m.row;
 
     // Cells fade to nothing at `radius`, so there is no point building
     // anything beyond that — this is what keeps an infinite grid cheap.
@@ -128,18 +149,13 @@
     const rMax = Math.ceil((-panY + reach) / row);
 
     for (let r = rMin; r <= rMax; r++) {
-      // Each row slides sideways by an arbitrary fraction of the pitch.
-      // Rows are already more than a full cell height apart, so nothing
-      // here can collide — and it is what stops columns from lining up
-      // down the screen, which per-cell jitter alone is far too small to
-      // break.
       const shift = noise(0, r, 5) * pitch;
       const qMin = Math.floor((-panX - reach - shift) / pitch);
       const qMax = Math.ceil((-panX + reach - shift) / pitch);
 
       for (let q = qMin; q <= qMax; q++) {
-        const x = pitch * q + shift + (noise(q, r, 3) - 0.5) * 2 * JX;
-        const y = row * r + (noise(q, r, 4) - 0.5) * 2 * JY;
+        const p = cellPos(q, r, m);
+        const x = p.x, y = p.y;
         const dx = x + panX, dy = y + panY;
         const d = Math.hypot(dx, dy);
         if (d > reach) continue;
@@ -148,9 +164,8 @@
         seen.add(key);
         const it = pool.get(key) || makeCell(q, r, key);
 
-        const ratio = ratios[it.index] || 0.75;
-        const w = ratio >= 1 ? CELL : Math.round(CELL * ratio);
-        const h = ratio >= 1 ? Math.round(CELL / ratio) : CELL;
+        const box = cellBox(it.index, CELL);
+        const w = box.w, h = box.h;
 
         it.x = x;
         it.y = y;
@@ -343,11 +358,30 @@
     setTimeout(go, 2500);
   }
 
+  // Arriving from a photo that shrank back into the grid: put that
+  // photo's cell dead centre, where the flight just finished, and skip
+  // the entrance so nothing moves underneath it.
+  let landed = null;
+  try {
+    const raw = sessionStorage.getItem("hk:back");
+    sessionStorage.removeItem("hk:back");
+    if (raw) landed = JSON.parse(raw);
+  } catch (e) { /* private browsing */ }
+
+  if (landed && typeof landed.i === "number") {
+    const spot = cellPos(cellFor(landed.i).q, cellFor(landed.i).r, metrics());
+    panX = targetX = -spot.x;
+    panY = targetY = -spot.y;
+    introT = 1;
+  }
+
   render();
-  requestAnimationFrame(function intro(ts) {
-    if (!introStart) introStart = ts;
-    introT = Math.min(1, (ts - introStart) / INTRO_MS);
-    render();
-    if (introT < 1) requestAnimationFrame(intro);
-  });
+  if (introT < 1) {
+    requestAnimationFrame(function intro(ts) {
+      if (!introStart) introStart = ts;
+      introT = Math.min(1, (ts - introStart) / INTRO_MS);
+      render();
+      if (introT < 1) requestAnimationFrame(intro);
+    });
+  }
 })();

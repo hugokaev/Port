@@ -190,6 +190,9 @@ a {
 /* ---------- gallery (honeycomb) page ---------- */
 
 .watch {
+  /* Read by both pages: the grid lays cells out at this size, and the
+     photo page needs it to know where a photo shrinks back to. */
+  --watch-cell: 160px;
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -246,10 +249,12 @@ a {
   transform: scale(1.05);
 }
 
-/* Leaving for the single-photo view: the grid clears while the chosen
-   photo travels on top of it. */
+/* Whichever view you are leaving clears while the chosen photo travels
+   on top of it. The photo itself is hidden outright rather than faded,
+   so it does not ghost behind the copy in flight. */
 .is-leaving .topbar,
-.is-leaving .watch {
+.is-leaving .watch,
+.is-leaving .gallery {
   opacity: 0;
   transition: opacity 0.28s ease;
 }
@@ -383,6 +388,10 @@ a {
     left: 20px;
     top: 16px;
     gap: 14px;
+  }
+
+  .watch {
+    --watch-cell: 112px;
   }
 
   /* Sit a little above centre on a tall screen, which otherwise leaves
