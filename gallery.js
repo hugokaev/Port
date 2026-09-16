@@ -10,8 +10,8 @@
   const cellSize = () => (innerWidth <= 640 ? 112 : 160);
   // Cells are nudged off the lattice so the field does not read as a
   // grid; the gap has to carry that wander without letting photos touch.
-  const GAP = 26;
-  const JX = 9, JY = 6;
+  const GAP = 32;
+  const JX = 13, JY = 6;
   const DIRS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
 
   const thumb = (i) => "../" + PHOTOS[i].src.replace("images/web/", "images/thumb/");
@@ -128,11 +128,17 @@
     const rMax = Math.ceil((-panY + reach) / row);
 
     for (let r = rMin; r <= rMax; r++) {
-      const qMin = Math.floor((-panX - reach) / pitch - r / 2);
-      const qMax = Math.ceil((-panX + reach) / pitch - r / 2);
+      // Each row slides sideways by an arbitrary fraction of the pitch.
+      // Rows are already more than a full cell height apart, so nothing
+      // here can collide — and it is what stops columns from lining up
+      // down the screen, which per-cell jitter alone is far too small to
+      // break.
+      const shift = noise(0, r, 5) * pitch;
+      const qMin = Math.floor((-panX - reach - shift) / pitch);
+      const qMax = Math.ceil((-panX + reach - shift) / pitch);
 
       for (let q = qMin; q <= qMax; q++) {
-        const x = pitch * (q + r / 2) + (noise(q, r, 3) - 0.5) * 2 * JX;
+        const x = pitch * q + shift + (noise(q, r, 3) - 0.5) * 2 * JX;
         const y = row * r + (noise(q, r, 4) - 0.5) * 2 * JY;
         const dx = x + panX, dy = y + panY;
         const d = Math.hypot(dx, dy);
