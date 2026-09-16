@@ -238,8 +238,6 @@ a {
   user-select: none;
 }
 
-/* Many photographs sit on white, so without a hairline the circles
-   dissolve into the page. */
 .watch-cell img {
   transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
 }
@@ -248,10 +246,31 @@ a {
   transform: scale(1.05);
 }
 
-/* Leaving for the single-photo view. */
-.is-leaving .topbar {
+/* Leaving for the single-photo view: the grid clears while the chosen
+   photo travels on top of it. */
+.is-leaving .topbar,
+.is-leaving .watch {
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.28s ease;
+}
+
+/* The photo in flight between the grid and the photo page. It is the
+   real picture rather than a fade between two, so it must never change
+   opacity — only size and position. */
+.hero-flight {
+  position: fixed;
+  z-index: 60;
+  margin: 0;
+  object-fit: cover;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Landing mid-flight: the photo is already on screen at this exact size,
+   so fading it in would undo the handover. */
+.no-fade .gallery-figure img,
+.no-fade .gallery-figure figcaption {
+  transition: none;
 }
 
 /* Arriving from the honeycomb: the photo settles back out of the push. */

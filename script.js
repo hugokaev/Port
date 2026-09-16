@@ -131,11 +131,27 @@ PHOTOS.sort((a, b) => {
 
   const requested = parseInt(new URLSearchParams(location.search).get("i"), 10);
   const valid = Number.isInteger(requested) && requested >= 0 && requested < PHOTOS.length;
-  // The grid also links straight here with no index, so the referrer is
-  // what tells us to land out of a zoom rather than cold.
-  if (valid || document.referrer.indexOf("/gallery") !== -1) {
+
+  // A photo opened from the grid is handed over mid-morph: give the
+  // image its ratio up front so it occupies the right box before the
+  // file loads, and leave the zoom to the transition rather than
+  // animating on top of it.
+  let handoff = null;
+  try {
+    const raw = sessionStorage.getItem("hk:hero");
+    sessionStorage.removeItem("hk:hero");
+    if (raw) handoff = JSON.parse(raw);
+  } catch (e) { /* private browsing */ }
+
+  const morphing = handoff && handoff.i === requested;
+  if (morphing) {
+    // The photo is already on screen at this exact size, so it must
+    // appear instantly rather than zoom or fade into place.
+    document.body.classList.add("no-fade");
+  } else if (valid || document.referrer.indexOf("/gallery") !== -1) {
     document.body.classList.add("from-gallery");
   }
+
   show(valid ? requested : 0);
 })();
 

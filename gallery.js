@@ -248,19 +248,99 @@
   addEventListener("resize", render);
 
   // --- opening a photo ----------------------------------------------
+  // Where this photo will sit on the photo page. Measured from a hidden
+  // copy of that page's own markup rather than recomputed here, so the
+  // landing spot cannot drift out of step with the stylesheet.
+  function landingRect(ratio) {
+    const host = document.createElement("div");
+    host.style.cssText =
+      "position:fixed;inset:0;display:flex;flex-direction:column;" +
+      "visibility:hidden;pointer-events:none;z-index:-1";
+    host.innerHTML =
+      '<main class="gallery">' +
+      '<button class="nav-arrow nav-prev">‹</button>' +
+      '<figure class="gallery-figure"><img alt=""><figcaption>&nbsp;</figcaption></figure>' +
+      '<button class="nav-arrow nav-next">›</button>' +
+      "</main>" +
+      // The footer is empty but its padding shortens the photo area, and
+      // leaving it out drops the landing point ~32px too low.
+      '<footer class="site-footer"><p>&nbsp;</p></footer>';
+
+    // An oversized box of the right shape is shrunk by max-width and
+    // max-height to exactly where the real photo lands, so the file's
+    // true pixel dimensions are never needed.
+    const probe = host.querySelector(".gallery-figure img");
+    probe.style.aspectRatio = String(ratio);
+    probe.style.width = "4000px";
+    probe.style.height = "auto";
+
+    document.body.appendChild(host);
+    const rect = probe.getBoundingClientRect();
+    host.remove();
+    return rect;
+  }
+
   function open(it) {
     if (moved > 8) return; // that was a drag, not a tap
     zooming = true;
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
-    // Push in on the chosen photo: it stays put while everything else
-    // expands away around it.
-    canvas.style.transformOrigin = it.x + "px " + it.y + "px";
-    canvas.classList.add("is-zooming");
-    canvas.style.transform =
-      "translate3d(" + panX + "px," + panY + "px,0) scale(6)";
-    canvas.style.opacity = "0";
+
+    const thumb = it.el.querySelector("img");
+    const ratio = thumb.naturalWidth && thumb.naturalHeight
+      ? thumb.naturalWidth / thumb.naturalHeight
+      : 0.75;
+    const from = thumb.getBoundingClientRect();
+    const to = landingRect(ratio);
+    const full = "../" + PHOTOS[it.index].src;
+
+    // Fly the photo itself. It starts as the thumbnail, which is already
+    // decoded, and upgrades to the full file the moment that arrives —
+    // same picture, so the swap is invisible.
+    const flight = document.createElement("img");
+    flight.className = "hero-flight";
+    flight.src = thumb.currentSrc || thumb.src;
+    flight.style.left = to.left + "px";
+    flight.style.top = to.top + "px";
+    flight.style.width = to.width + "px";
+    flight.style.height = to.height + "px";
+    flight.style.transformOrigin = "top left";
+    flight.style.transform =
+      "translate(" + (from.left - to.left) + "px," + (from.top - to.top) + "px) " +
+      "scale(" + from.width / to.width + "," + from.height / to.height + ")";
+    document.body.appendChild(flight);
+
+    const upgrade = new Image();
+    const ready = new Promise((resolve) => {
+      upgrade.onload = () => { flight.src = full; resolve(); };
+      upgrade.onerror = resolve;
+    });
+    upgrade.src = full;
+
     document.body.classList.add("is-leaving");
-    setTimeout(() => { location.href = "/?i=" + it.index; }, 430);
+
+    try {
+      sessionStorage.setItem("hk:hero", JSON.stringify({ i: it.index, ar: ratio }));
+    } catch (e) { /* private browsing */ }
+
+    // Commit the starting transform as its own style before changing it.
+    // Without this flush the browser coalesces both values into one
+    // change and the photo jumps to its destination with no animation.
+    getComputedStyle(flight).transform;
+
+    flight.style.transition = "transform 0.52s cubic-bezier(0.22, 1, 0.36, 1)";
+    flight.style.transform = "none";
+
+    // Hand over once the flight has landed AND the full file is decoded,
+    // otherwise the photo page can open on an empty frame while it
+    // downloads. Capped so a stalled request cannot trap you here.
+    let gone = false;
+    const go = () => {
+      if (gone) return;
+      gone = true;
+      location.href = "/?i=" + it.index;
+    };
+    Promise.all([new Promise((r) => setTimeout(r, 540)), ready]).then(go);
+    setTimeout(go, 2500);
   }
 
   render();
