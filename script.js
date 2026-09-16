@@ -129,5 +129,24 @@ PHOTOS.sort((a, b) => {
     touchStartX = null;
   }, { passive: true });
 
-  show(0);
+  const requested = parseInt(new URLSearchParams(location.search).get("i"), 10);
+  if (Number.isInteger(requested) && requested >= 0 && requested < PHOTOS.length) {
+    document.body.classList.add("from-gallery");
+    show(requested);
+  } else {
+    show(0);
+  }
+})();
+
+// Zoom the current view out before following a top-bar link, so moving
+// between the single photo and the honeycomb reads as one motion.
+(function () {
+  document.querySelectorAll("[data-zoom-to]").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      document.body.classList.add("is-zooming-out");
+      setTimeout(() => { location.href = link.dataset.zoomTo; }, 320);
+    });
+  });
 })();

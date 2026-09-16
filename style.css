@@ -47,6 +47,32 @@ a {
   backdrop-filter: none;
 }
 
+.topbar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+}
+
+.nav-link {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-bottom: 1px solid transparent;
+  padding-bottom: 3px;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0.8, 1);
+}
+
+.nav-link:hover {
+  border-bottom-color: var(--ink);
+  opacity: 0.7;
+}
+
+.nav-link.is-active {
+  color: var(--muted);
+  cursor: default;
+}
+
 .contact-btn {
   font-size: 12px;
   letter-spacing: 0.15em;
@@ -89,6 +115,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 28px;
   position: relative;
   padding: 100px 60px 20px;
   min-height: 0;
@@ -102,7 +129,10 @@ a {
   flex-direction: column;
   align-items: flex-start;
   max-width: 620px;
-  width: 100%;
+  /* Hug the photo's real width — which max-height often makes narrower
+     than 620px — so the arrows sit an equal distance from both edges. */
+  width: fit-content;
+  min-width: 0;
   overflow: visible;
   z-index: 10;
 }
@@ -124,6 +154,10 @@ a {
 }
 
 .gallery-figure figcaption {
+  /* Kept out of the figure's intrinsic width so a long caption cannot
+     stretch it wider than the photo. */
+  width: 0;
+  min-width: 100%;
   margin-top: 16px;
   font-size: 13px;
   color: var(--muted);
@@ -138,28 +172,125 @@ a {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 40px;
+  font-size: 52px;
   line-height: 1;
-  color: var(--faint);
-  padding: 12px 16px;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  color: var(--ink);
+  padding: 12px 10px;
+  /* In the flex row beside the photo, so they track its edge at any
+     width instead of sitting out at the window edge. */
+  flex: none;
   transition: all 0.3s cubic-bezier(0.2, 0, 0.8, 1);
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .nav-arrow:hover {
-  color: var(--ink);
   opacity: 1;
 }
 
-.nav-prev {
-  left: 18px;
+/* ---------- gallery (honeycomb) page ---------- */
+
+.watch {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  min-height: 0;
 }
 
-.nav-next {
-  right: 18px;
+.watch:active {
+  cursor: grabbing;
+}
+
+.watch-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: transform 0.55s cubic-bezier(0.2, 0, 0.2, 1),
+              opacity 0.45s ease;
+}
+
+.gallery-page.is-ready .watch-canvas {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* While panning the cluster must track the pointer exactly, so the
+   entrance easing has to be out of the way. */
+.watch-canvas.is-dragging {
+  transition: none;
+}
+
+.watch-canvas.is-zooming {
+  transition: transform 0.42s cubic-bezier(0.4, 0, 1, 1),
+              opacity 0.42s ease-in;
+}
+
+.watch-cell {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f2f2f2;
+  cursor: pointer;
+  will-change: transform, opacity;
+}
+
+.watch-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 32%;
+  display: block;
+  user-select: none;
+}
+
+/* Many photographs sit on white, so without a hairline the circles
+   dissolve into the page. */
+.watch-cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  transition: box-shadow 0.25s ease;
+}
+
+.watch-cell:hover::after {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+/* Leaving for the single-photo view. */
+.is-leaving .topbar {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Arriving from the honeycomb: the photo grows into place. */
+.from-gallery .gallery-figure img {
+  animation: zoom-in 0.45s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+@keyframes zoom-in {
+  from { transform: scale(1.18); }
+  to   { transform: scale(1); }
+}
+
+/* Zooming out of the single-photo view towards the honeycomb. */
+.is-zooming-out .gallery,
+.is-zooming-out .contact-main,
+.is-zooming-out .watch {
+  transform: scale(1.25);
+  opacity: 0;
+  transition: transform 0.34s cubic-bezier(0.4, 0, 1, 1), opacity 0.34s ease-in;
 }
 
 /* ---------- contact page ---------- */
@@ -238,11 +369,19 @@ a {
     position: fixed;
   }
 
-  .site-name {
-    font-size: 14px;
+  .topbar-left {
     position: absolute;
     left: 20px;
     top: 16px;
+    gap: 14px;
+  }
+
+  .site-name {
+    font-size: 14px;
+  }
+
+  .nav-link {
+    font-size: 10px;
   }
 
   .contact-btn {
@@ -250,6 +389,11 @@ a {
     right: 20px;
     top: 16px;
     font-size: 11px;
+  }
+
+  .watch-cell {
+    width: 92px;
+    height: 92px;
   }
 
   .gallery {
