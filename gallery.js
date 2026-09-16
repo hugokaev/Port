@@ -35,6 +35,13 @@
   const pool = new Map(); // "q,r" -> cell record
   let panX = 0, panY = 0, targetX = 0, targetY = 0, raf = 0, zooming = false;
 
+  // You arrive here having pulled back from a single photo, so the grid
+  // comes in large and settles, continuing that motion rather than
+  // simply appearing.
+  const INTRO_MS = 750;
+  const INTRO_FROM = 1.3;
+  let introT = 0, introStart = 0;
+
   function makeCell(q, r, key) {
     const index = photoAt(q, r);
     const el = document.createElement("button");
@@ -127,7 +134,11 @@
       }
     }
 
-    canvas.style.transform = "translate3d(" + panX + "px," + panY + "px,0)";
+    const eased = 1 - Math.pow(1 - introT, 3);
+    const introScale = INTRO_FROM + (1 - INTRO_FROM) * eased;
+    canvas.style.transform =
+      "translate3d(" + panX + "px," + panY + "px,0) scale(" + introScale.toFixed(4) + ")";
+    canvas.style.opacity = eased.toFixed(3);
   }
 
   // Input nudges a target; the cluster eases towards it each frame, so it
@@ -202,18 +213,22 @@
     if (moved > 8) return; // that was a drag, not a tap
     zooming = true;
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    // Push in on the chosen photo: it stays put while everything else
+    // expands away around it.
     canvas.style.transformOrigin = it.x + "px " + it.y + "px";
     canvas.classList.add("is-zooming");
     canvas.style.transform =
-      "translate3d(" + panX + "px," + panY + "px,0) scale(8)";
+      "translate3d(" + panX + "px," + panY + "px,0) scale(6)";
     canvas.style.opacity = "0";
     document.body.classList.add("is-leaving");
-    setTimeout(() => { location.href = "/?i=" + it.index; }, 420);
+    setTimeout(() => { location.href = "/?i=" + it.index; }, 430);
   }
 
   render();
-  requestAnimationFrame(() => document.body.classList.add("is-ready"));
-  // Hand transform control over to the frame loop once the entrance has
-  // finished playing.
-  setTimeout(() => canvas.classList.add("is-live"), 650);
+  requestAnimationFrame(function intro(ts) {
+    if (!introStart) introStart = ts;
+    introT = Math.min(1, (ts - introStart) / INTRO_MS);
+    render();
+    if (introT < 1) requestAnimationFrame(intro);
+  });
 })();

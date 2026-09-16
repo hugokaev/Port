@@ -130,12 +130,13 @@ PHOTOS.sort((a, b) => {
   }, { passive: true });
 
   const requested = parseInt(new URLSearchParams(location.search).get("i"), 10);
-  if (Number.isInteger(requested) && requested >= 0 && requested < PHOTOS.length) {
+  const valid = Number.isInteger(requested) && requested >= 0 && requested < PHOTOS.length;
+  // The grid also links straight here with no index, so the referrer is
+  // what tells us to land out of a zoom rather than cold.
+  if (valid || document.referrer.indexOf("/gallery") !== -1) {
     document.body.classList.add("from-gallery");
-    show(requested);
-  } else {
-    show(0);
   }
+  show(valid ? requested : 0);
 })();
 
 // Zoom the current view out before following a top-bar link, so moving
@@ -145,8 +146,12 @@ PHOTOS.sort((a, b) => {
     link.addEventListener("click", (e) => {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
       e.preventDefault();
-      document.body.classList.add("is-zooming-out");
-      setTimeout(() => { location.href = link.dataset.zoomTo; }, 320);
+      // Direction matters: heading for the grid pulls back, heading for
+      // a single photo pushes in.
+      document.body.classList.add(
+        link.dataset.zoom === "in" ? "is-zooming-in" : "is-zooming-out"
+      );
+      setTimeout(() => { location.href = link.dataset.zoomTo; }, 370);
     });
   });
 })();

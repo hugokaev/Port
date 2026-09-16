@@ -202,32 +202,22 @@ a {
   cursor: grabbing;
 }
 
+/* Transform and opacity are written every frame by gallery.js — the
+   entrance scale, the pan and the zoom all compose into one transform,
+   so nothing here may set them or it would be overwritten anyway. */
 .watch-canvas {
   position: absolute;
   left: 50%;
   top: 50%;
   width: 0;
   height: 0;
-  opacity: 0;
-  transform: scale(0.6);
-  transition: transform 0.55s cubic-bezier(0.2, 0, 0.2, 1),
-              opacity 0.45s ease;
 }
 
-.gallery-page.is-ready .watch-canvas {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
-}
-
-/* Once the entrance has played, panning is eased frame by frame in JS,
-   so a CSS transform transition would only fight it. */
-.watch-canvas.is-live {
-  transition: opacity 0.3s ease;
-}
-
+/* The exception: on the way out the frame loop stops, so the last
+   transform written can simply be transitioned to. */
 .watch-canvas.is-zooming {
-  transition: transform 0.42s cubic-bezier(0.4, 0, 1, 1),
-              opacity 0.42s ease-in;
+  transition: transform 0.5s cubic-bezier(0.5, 0, 0.9, 0.9),
+              opacity 0.5s cubic-bezier(0.6, 0, 1, 1);
 }
 
 .watch-cell {
@@ -264,23 +254,33 @@ a {
   transition: opacity 0.3s ease;
 }
 
-/* Arriving from the honeycomb: the photo grows into place. */
+/* Arriving from the honeycomb: the photo settles back out of the push. */
 .from-gallery .gallery-figure img {
-  animation: zoom-in 0.45s cubic-bezier(0.2, 0, 0.2, 1);
+  animation: zoom-settle 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes zoom-in {
-  from { transform: scale(1.18); }
+@keyframes zoom-settle {
+  from { transform: scale(1.14); }
   to   { transform: scale(1); }
 }
 
-/* Zooming out of the single-photo view towards the honeycomb. */
+/* Leaving one photo for the whole grid is a pull back, so the photo
+   recedes — scaling it up here would read as pushing in, the wrong way
+   round for where you are about to land. */
 .is-zooming-out .gallery,
-.is-zooming-out .contact-main,
-.is-zooming-out .watch {
-  transform: scale(1.25);
+.is-zooming-out .contact-main {
+  transform: scale(0.84);
   opacity: 0;
-  transition: transform 0.34s cubic-bezier(0.4, 0, 1, 1), opacity 0.34s ease-in;
+  transition: transform 0.4s cubic-bezier(0.5, 0, 0.9, 0.9),
+              opacity 0.4s cubic-bezier(0.6, 0, 1, 1);
+}
+
+/* Leaving the grid for one photo is the opposite: push in. */
+.is-zooming-in .watch {
+  transform: scale(1.4);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.5, 0, 0.9, 0.9),
+              opacity 0.4s cubic-bezier(0.6, 0, 1, 1);
 }
 
 /* ---------- contact page ---------- */
