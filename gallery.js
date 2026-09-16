@@ -7,7 +7,7 @@
   if (!canvas || typeof PHOTOS === "undefined") return;
 
   const N = PHOTOS.length;
-  const cellSize = () => (innerWidth <= 640 ? 92 : 128);
+  const cellSize = () => (innerWidth <= 640 ? 112 : 160);
   const GAP = 18;
 
   const thumb = (i) => "../" + PHOTOS[i].src.replace("images/web/", "images/thumb/");
@@ -59,10 +59,24 @@
     if (zooming) return;
 
     const CELL = cellSize();
-    const pitch = CELL + GAP;
+
+    // Space the lattice by the widest and tallest photo actually in the
+    // set, not by the square that bounds them. Every photo here is
+    // upright, so pitching on height alone would leave the field far
+    // emptier than it needs to be — while still adapting if a landscape
+    // shot is ever added.
+    let maxW = 0, maxH = 0;
+    for (const r of ratios) {
+      if (!r) continue;
+      maxW = Math.max(maxW, r >= 1 ? CELL : CELL * r);
+      maxH = Math.max(maxH, r >= 1 ? CELL / r : CELL);
+    }
+    if (!maxW) { maxW = CELL * 0.75; maxH = CELL; }
+
+    const pitch = maxW + GAP;
     // Rows sit closer than a true hexagon, but never closer than a full
     // cell height, so upright photos in adjacent rows cannot touch.
-    const row = Math.max(CELL + GAP * 0.6, pitch * 0.866);
+    const row = Math.max(maxH + GAP * 0.6, pitch * 0.866);
 
     // Cells fade to nothing at `radius`, so there is no point building
     // anything beyond that — this is what keeps an infinite grid cheap.
