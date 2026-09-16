@@ -366,6 +366,12 @@ a {
     gap: 14px;
   }
 
+  /* Sit a little above centre on a tall screen, which otherwise leaves
+     the cluster looking low under the header. */
+  .watch-canvas {
+    top: 44%;
+  }
+
   .site-name {
     font-size: 14px;
   }
