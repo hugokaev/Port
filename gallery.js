@@ -266,7 +266,7 @@
   // Where this photo will sit on the photo page. Measured from a hidden
   // copy of that page's own markup rather than recomputed here, so the
   // landing spot cannot drift out of step with the stylesheet.
-  function landingRect(ratio) {
+  function landingRect(ratio, caption) {
     const host = document.createElement("div");
     host.style.cssText =
       "position:fixed;inset:0;display:flex;flex-direction:column;" +
@@ -274,7 +274,10 @@
     host.innerHTML =
       '<main class="gallery">' +
       '<button class="nav-arrow nav-prev">‹</button>' +
-      '<figure class="gallery-figure"><img alt=""><figcaption>&nbsp;</figcaption></figure>' +
+      // The real caption, not a placeholder: a caption long enough to
+      // wrap makes the figure taller and lifts the photo, which a single
+      // blank line would not predict.
+      '<figure class="gallery-figure"><img alt=""><figcaption></figcaption></figure>' +
       '<button class="nav-arrow nav-next">›</button>' +
       "</main>" +
       // The footer is empty but its padding shortens the photo area, and
@@ -288,6 +291,7 @@
     probe.style.aspectRatio = String(ratio);
     probe.style.width = "4000px";
     probe.style.height = "auto";
+    host.querySelector("figcaption").textContent = caption || "";
 
     document.body.appendChild(host);
     const rect = probe.getBoundingClientRect();
@@ -301,11 +305,11 @@
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
 
     const thumb = it.el.querySelector("img");
-    const ratio = thumb.naturalWidth && thumb.naturalHeight
-      ? thumb.naturalWidth / thumb.naturalHeight
-      : 0.75;
+    // The listed ratio is the full file's, which is what the photo page
+    // will lay out from — the thumbnail's own can differ by rounding.
+    const ratio = ratios[it.index];
     const from = thumb.getBoundingClientRect();
-    const to = landingRect(ratio);
+    const to = landingRect(ratio, PHOTOS[it.index].title);
     const full = "../" + PHOTOS[it.index].src;
 
     // Fly the photo itself. It starts as the thumbnail, which is already

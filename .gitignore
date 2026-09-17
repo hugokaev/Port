@@ -1,0 +1,6 @@
+.DS_Store
+
+# Drop zone for new photos. tools/import.py converts what lands here into
+# the Value(n) set, so the originals stay local rather than being
+# published at full resolution alongside the site.
+images/upload/

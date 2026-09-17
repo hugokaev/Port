@@ -4,6 +4,7 @@
 const PHOTOS = [
   { src: "images/web/Value(51)Chasing,2026.webp", title: "Chasing,2026", ar: 0.6667 },
   { src: "images/web/Value(50)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7505 },
+  { src: "images/web/Value(49)Colour Series, 2026.webp", title: "Colour Series, 2026", ar: 0.7500 },
   { src: "images/web/Value(48)Chasing, 2026.webp", title: "Chasing, 2026", ar: 0.7325 },
   { src: "images/web/Value(45)Audio, Fijolla, 2026.webp", title: "Audio, Fijolla, 2026", ar: 0.7500 },
   { src: "images/web/Value(41)Manon Servage, 2026.webp", title: "Manon Servage, 2026", ar: 0.7150 },
