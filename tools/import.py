@@ -6,14 +6,18 @@ in images/, a 2400px copy in images/web/ that the pages actually load,
 and a 400px thumbnail in images/thumb/ for the grid. The PHOTOS list in
 script.js is then regenerated from what is on disk.
 
-    python3 tools/import.py                # newest photo goes first
-    python3 tools/import.py --value 49     # or place it explicitly
-    python3 tools/import.py --slot 3       # or by position in the gallery
+    python3 tools/import.py                      # newest photo goes first
+    python3 tools/import.py --value 49           # or place it explicitly
+    python3 tools/import.py --slot 3             # or by position in the gallery
+    python3 tools/import.py --replace 49 --file Replace.png
+                                                 # swap one photo's picture,
+                                                 # keeping its value and caption
 
 Needs Pillow with WebP support.
 """
 
 import argparse
+import hashlib
 import os
 import re
 import sys
@@ -82,6 +86,18 @@ def derive(path, value):
     return "Value(%d)%s.webp" % (value, caption), caption
 
 
+def load(path):
+    img = ImageOps.exif_transpose(Image.open(path))
+    if img.mode in ("RGBA", "LA", "P"):
+        # Flatten onto white, matching the page. Converting straight to
+        # RGB would composite any transparency onto black instead.
+        img = img.convert("RGBA")
+        flat = Image.new("RGB", img.size, (255, 255, 255))
+        flat.paste(img, mask=img.getchannel("A"))
+        return flat
+    return img.convert("RGB")
+
+
 def write_sizes(src_img, name):
     master = os.path.join(MASTERS, name)
     src_img.save(master, "WEBP", quality=MASTER_Q, method=6)
@@ -98,9 +114,16 @@ def write_sizes(src_img, name):
 def regenerate_photo_list():
     lines = ["const PHOTOS = ["]
     for value, name, caption in masters():
-        w, h = Image.open(os.path.join(WEB, name)).size
+        path = os.path.join(WEB, name)
+        w, h = Image.open(path).size
+        # Tag each photo with a hash of its own bytes. Replacing a picture
+        # keeps its filename, so without this the browser and the CDN would
+        # go on serving the old one from cache.
+        with open(path, "rb") as fh:
+            tag = hashlib.md5(fh.read()).hexdigest()[:8]
         lines.append(
-            '  { src: "images/web/%s", title: "%s", ar: %.4f },' % (name, caption, w / h)
+            '  { src: "images/web/%s?v=%s", title: "%s", ar: %.4f },'
+            % (name, tag, caption, w / h)
         )
     lines.append("];")
 
@@ -114,6 +137,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--value", type=int, help="exact Value(n) to assign")
     ap.add_argument("--slot", type=int, help="position in the gallery, 1 = first")
+    ap.add_argument("--replace", type=int, metavar="VALUE",
+                    help="swap this photo's picture, keeping its value and caption")
+    ap.add_argument("--file", help="which upload to use (default: the only one)")
     # The master written here is lossy WebP, so the uploaded file may be
     # the only lossless copy. Removing it is opt-in.
     ap.add_argument("--remove", action="store_true", help="delete the upload once imported")
@@ -127,8 +153,40 @@ def main():
         if os.path.splitext(f)[1].lower() in SOURCES
         and os.path.isfile(os.path.join(UPLOAD, f))
     )
+    if args.file:
+        if args.file not in pending:
+            sys.exit("%r is not in images/upload/ (found: %s)" % (args.file, ", ".join(pending)))
+        pending = [args.file]
+
     if not pending:
         print("Nothing to import.")
+        return
+
+    if args.replace is not None:
+        if len(pending) != 1:
+            sys.exit("Replacing needs one source — pass --file to choose between: %s"
+                     % ", ".join(pending))
+        match = [m for m in masters() if m[0] == args.replace]
+        if not match:
+            sys.exit("No photo has Value(%d)." % args.replace)
+        _, name, caption = match[0]
+
+        path = os.path.join(UPLOAD, pending[0])
+        img = load(path)
+        before = os.path.getsize(os.path.join(WEB, name))
+        write_sizes(img, name)
+
+        print("%s" % pending[0])
+        print("  -> replaces the picture in %s" % name)
+        print("  caption kept: %s" % caption)
+        print("  source:  %dx%d" % (img.width, img.height))
+        print("  web:     %.0f KB (was %.0f KB)"
+              % (os.path.getsize(os.path.join(WEB, name)) / 1024, before / 1024))
+
+        if args.remove:
+            os.remove(path)
+
+        print("\nscript.js rebuilt: %d photos" % regenerate_photo_list())
         return
 
     for upload in pending:
@@ -137,7 +195,7 @@ def main():
         value = pick_value(existing, args)
         name, caption = derive(path, value)
 
-        img = ImageOps.exif_transpose(Image.open(path)).convert("RGB")
+        img = load(path)
         before = os.path.getsize(path)
         write_sizes(img, name)
 
