@@ -204,11 +204,28 @@
   const WHEEL = 0.55;
   const EASE = 0.24;
 
+  // A flick on a touchscreen should keep travelling after the finger
+  // leaves; stopping dead on release is what makes a grid feel stuck to
+  // the glass. Mouse dragging is left alone — there the pointer is still
+  // there to steer with.
+  const FRICTION = 0.94;      // speed kept per frame while coasting
+  const MIN_FLICK = 0.06;     // px/ms — slower than this was a placement, not a throw
+  const MAX_FLICK = 2.5;      // px/ms — cap so a hard swipe cannot bolt across
+  let vx = 0, vy = 0, coasting = false, touchDrag = false;
+  const trail = [];
+
   function glide() {
     if (raf || zooming) return;
     const step = () => {
+      if (coasting) {
+        targetX += vx;
+        targetY += vy;
+        vx *= FRICTION;
+        vy *= FRICTION;
+        if (Math.hypot(vx, vy) < 0.15) coasting = false;
+      }
       const dx = targetX - panX, dy = targetY - panY;
-      if (Math.abs(dx) < 0.25 && Math.abs(dy) < 0.25) {
+      if (!coasting && Math.abs(dx) < 0.25 && Math.abs(dy) < 0.25) {
         panX = targetX;
         panY = targetY;
         raf = 0;
@@ -239,6 +256,12 @@
     moved = 0;
     lastX = e.clientX;
     lastY = e.clientY;
+    // Catching a coasting grid should stop it where you touched it.
+    coasting = false;
+    vx = vy = 0;
+    touchDrag = e.pointerType === "touch";
+    trail.length = 0;
+    trail.push({ x: e.clientX, y: e.clientY, t: e.timeStamp });
   });
 
   addEventListener("pointermove", (e) => {
@@ -251,10 +274,40 @@
     moved += Math.abs(dx) + Math.abs(dy);
     lastX = e.clientX;
     lastY = e.clientY;
+    trail.push({ x: e.clientX, y: e.clientY, t: e.timeStamp });
+    if (trail.length > 6) trail.shift();
     panBy(dx * DRAG, dy * DRAG);
   });
 
-  function endDrag() { dragging = false; }
+  // Speed at the moment of release, measured over the tail of the
+  // gesture only — a finger that swept round and paused is not a throw,
+  // and averaging the whole drag would say it was.
+  function flick(now) {
+    const recent = trail.filter((p) => now - p.t < 110);
+    if (recent.length < 2) return;
+    const a = recent[0], b = recent[recent.length - 1];
+    const dt = b.t - a.t;
+    if (dt <= 0) return;
+
+    let sx = ((b.x - a.x) / dt) * DRAG;
+    let sy = ((b.y - a.y) / dt) * DRAG;
+    const speed = Math.hypot(sx, sy);
+    if (speed < MIN_FLICK) return;
+    if (speed > MAX_FLICK) {
+      sx *= MAX_FLICK / speed;
+      sy *= MAX_FLICK / speed;
+    }
+
+    vx = sx * 16; // px per frame at 60fps
+    vy = sy * 16;
+    coasting = true;
+    glide();
+  }
+
+  function endDrag(e) {
+    if (dragging && touchDrag) flick(e && e.timeStamp ? e.timeStamp : performance.now());
+    dragging = false;
+  }
   addEventListener("pointerup", endDrag);
   addEventListener("pointercancel", endDrag);
 
