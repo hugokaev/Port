@@ -4,7 +4,6 @@
 const PHOTOS = [
   { src: "images/web/Value(51)Chasing,2026.webp?v=d1ef5f07", title: "Chasing,2026", ar: 0.6667 },
   { src: "images/web/Value(50)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp?v=815f4cfd", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7505 },
-  { src: "images/web/Value(49)Colour Series, 2026.webp?v=21f9630c", title: "Colour Series, 2026", ar: 0.7500 },
   { src: "images/web/Value(48)Chasing, 2026.webp?v=71b53fd5", title: "Chasing, 2026", ar: 0.7325 },
   { src: "images/web/Value(45)Audio, Fijolla, 2026.webp?v=732a716b", title: "Audio, Fijolla, 2026", ar: 0.7500 },
   { src: "images/web/Value(44)C.Protocol.webp?v=a4545517", title: "C.Protocol", ar: 0.7096 },
@@ -14,6 +13,7 @@ const PHOTOS = [
   { src: "images/web/Value(34)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp?v=7c0fcd54", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7502 },
   { src: "images/web/Value(33)Chasing, 2026.webp?v=73ec6377", title: "Chasing, 2026", ar: 0.6667 },
   { src: "images/web/Value(32)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp?v=676c42a3", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7500 },
+  { src: "images/web/Value(30)Colour Series, 2026.webp?v=21f9630c", title: "Colour Series, 2026", ar: 0.7500 },
   { src: "images/web/Value(29)Chasing, 2026.webp?v=62480716", title: "Chasing, 2026", ar: 0.6667 },
   { src: "images/web/Value(28)ADOLF MALDONADO.webp?v=0f416a31", title: "ADOLF MALDONADO", ar: 0.6668 },
   { src: "images/web/Value(27)Chatchai.C.webp?v=7414cda7", title: "Chatchai.C", ar: 0.6671 },
