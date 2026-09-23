@@ -197,9 +197,12 @@
 
   // Input nudges a target; the cluster eases towards it each frame, so it
   // drifts rather than snapping to the pointer.
-  const DRAG = 0.55;
-  const WHEEL = 0.35;
-  const EASE = 0.08;
+  // Dragging tracks the pointer almost one to one — anything less reads
+  // as the grid lagging behind your hand. The easing is kept only to
+  // smooth the steps between frames, not to slow the movement down.
+  const DRAG = 0.9;
+  const WHEEL = 0.55;
+  const EASE = 0.24;
 
   function glide() {
     if (raf || zooming) return;
