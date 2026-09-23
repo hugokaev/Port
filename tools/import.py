@@ -79,8 +79,25 @@ def pick_value(existing, args):
     return (max(used) + 1) if used else 1
 
 
+UPLOAD_VALUE = re.compile(r"^\s*[Vv]alue\((\d+)\)\s*(.*)$")
+
+
+def split_name(path):
+    """Caption from the filename, plus a value if it names one.
+
+    Dropping a file in as "Value(40)Some Caption.png" is the natural way
+    to ask for a position, so honour it rather than treating the prefix
+    as part of the caption.
+    """
+    stem = os.path.splitext(os.path.basename(path))[0].strip()
+    m = UPLOAD_VALUE.match(stem)
+    if m:
+        return m.group(2).strip(), int(m.group(1))
+    return stem, None
+
+
 def derive(path, value):
-    caption = os.path.splitext(os.path.basename(path))[0].strip()
+    caption, _ = split_name(path)
     if not caption:
         sys.exit("Cannot read a caption from %r" % path)
     return "Value(%d)%s.webp" % (value, caption), caption
@@ -192,7 +209,19 @@ def main():
     for upload in pending:
         path = os.path.join(UPLOAD, upload)
         existing = masters()
-        value = pick_value(existing, args)
+
+        # A value written into the filename wins, unless the command line
+        # asked for a specific placement instead.
+        _, named = split_name(path)
+        if named is not None and args.value is None and args.slot is None:
+            clash = [c for v, _, c in existing if v == named]
+            if clash:
+                sys.exit("%s asks for Value(%d), which %r already holds."
+                         % (upload, named, clash[0]))
+            value = named
+        else:
+            value = pick_value(existing, args)
+
         name, caption = derive(path, value)
 
         img = load(path)
