@@ -169,53 +169,39 @@ a {
   color: var(--faint);
 }
 
-/* Answers the finger straight away, before the next photo can arrive.
-   A ring rather than a blob — it reads as a struck surface instead of a
-   smudge — and a second, later ring to give the strike some depth. */
-.tap-ripple {
+/* The half of the screen you hit lights up and falls away, so the
+   feedback names the control you used rather than drawing a mark where
+   your finger happened to land. */
+.tap-edge {
+  display: none;
   position: fixed;
-  width: 18px;
-  height: 18px;
-  margin: -9px 0 0 -9px;
-  border-radius: 50%;
-  border: 1.5px solid #FF2CBE;
+  top: 0;
+  bottom: 0;
+  width: 42vw;
+  max-width: 250px;
   pointer-events: none;
-  z-index: 25;
+  z-index: 24;
   opacity: 0;
-  animation: tap-ring 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.tap-ripple.echo {
-  animation-delay: 0.085s;
-  animation-duration: 0.72s;
+.tap-edge.right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 44, 190, 0.22), rgba(255, 44, 190, 0));
 }
 
-/* --drift is set per mark by script.js: the rings travel the way the
-   photo is about to, so the feedback carries the direction of the tap
-   rather than just marking the spot. */
-@keyframes tap-ring {
-  0%   { transform: translateX(0) scale(0.35); opacity: 0.8; }
-  55%  { opacity: 0.3; }
-  100% { transform: translateX(var(--drift, 0px)) scale(5.2); opacity: 0; }
+.tap-edge.left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 44, 190, 0.22), rgba(255, 44, 190, 0));
 }
 
-/* A solid centre that punches out fast, so the very first frame after
-   contact already has something in it. */
-.tap-spark {
-  position: fixed;
-  width: 13px;
-  height: 13px;
-  margin: -6.5px 0 0 -6.5px;
-  border-radius: 50%;
-  background: #FF2CBE;
-  pointer-events: none;
-  z-index: 25;
-  animation: tap-spark 0.34s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+.tap-edge.flash {
+  animation: edge-flash 0.52s cubic-bezier(0.2, 0, 0.2, 1);
 }
 
-@keyframes tap-spark {
-  from { transform: translateX(0) scale(1); opacity: 0.85; }
-  to   { transform: translateX(calc(var(--drift, 0px) * 0.5)) scale(2.1); opacity: 0; }
+@keyframes edge-flash {
+  0%   { opacity: 0; }
+  16%  { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* The frame number rolls up as it changes, the way a film counter
@@ -238,17 +224,20 @@ a {
    having pushed it. On the figure rather than the image: the image is
    busy fading itself in, and two rules on one property fight.
 
-   It carries a little past its resting place and comes back, which is
-   what makes it feel thrown rather than merely moved. */
+   It arrives slightly small and under-travelled, swells past its
+   resting place and settles — the photo takes the press itself, which
+   is the whole point of dropping the marks at the fingertip. Travel and
+   scale share one keyframe because they share one element; as two
+   animations they would each claim transform and one would win. */
 @keyframes step-from-right {
-  0%   { transform: translateX(38px); }
-  62%  { transform: translateX(-7px); }
+  0%   { transform: translateX(34px) scale(0.962); }
+  58%  { transform: translateX(-6px) scale(1.006); }
   100% { transform: none; }
 }
 
 @keyframes step-from-left {
-  0%   { transform: translateX(-38px); }
-  62%  { transform: translateX(7px); }
+  0%   { transform: translateX(-34px) scale(0.962); }
+  58%  { transform: translateX(6px) scale(1.006); }
   100% { transform: none; }
 }
 
@@ -644,7 +633,8 @@ a {
     display: block;
   }
 
-  .tap-hint {
+  .tap-hint,
+  .tap-edge {
     display: block;
   }
 

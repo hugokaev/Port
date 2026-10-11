@@ -133,22 +133,13 @@ PHOTOS.sort((a, b) => {
     if (e.key === "ArrowRight") show(index + 1);
   });
 
-  function ripple(x, y, dir) {
-    // A centre that punches out fast under two rings that carry on
-    // expanding — the strike lands immediately and then opens up — and
-    // the whole mark leans the way the photo is about to travel.
-    ["tap-spark", "tap-ripple", "tap-ripple echo"].forEach((cls) => {
-      const mark = document.createElement("span");
-      mark.className = cls;
-      mark.style.left = x + "px";
-      mark.style.top = y + "px";
-      mark.style.setProperty("--drift", (dir > 0 ? 20 : -20) + "px");
-      document.body.appendChild(mark);
-      mark.addEventListener("animationend", () => mark.remove());
-      // Animations do not advance in a backgrounded tab, so animationend
-      // never arrives and these would pile up invisibly.
-      setTimeout(() => mark.remove(), 1400);
-    });
+  const edge = document.getElementById("tapEdge");
+
+  function lightEdge(dir) {
+    if (!edge) return;
+    edge.classList.remove("flash", "left", "right");
+    void edge.offsetWidth; // restart rather than ignore a repeat tap
+    edge.classList.add(dir > 0 ? "right" : "left", "flash");
   }
 
   // Mobile: click left/right halves to navigate
@@ -161,7 +152,7 @@ PHOTOS.sort((a, b) => {
     if (e.clientY < 60) return; // ignore top area where contact button is
 
     const forward = e.clientX >= window.innerWidth / 2;
-    ripple(e.clientX, e.clientY, forward ? 1 : -1);
+    lightEdge(forward ? 1 : -1);
     show(forward ? index + 1 : index - 1);
   });
 
