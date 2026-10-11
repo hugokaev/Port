@@ -361,17 +361,39 @@ a {
   transition: color 0.4s ease;
 }
 
+/* inline-block so the box hugs the glyphs — the wipe below measures
+   itself against this width, and a full-row box would finish the sweep
+   long after it had passed the last letter. */
 .contact-value {
-  display: block;
+  display: inline-block;
+  position: relative;
   font-size: clamp(30px, 5.6vw, 58px);
   line-height: 1.05;
   letter-spacing: -0.03em;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.contact-row:hover,
-.contact-row:focus-visible,
-.contact-row:hover .contact-kind {
+/* A pink copy of the address sitting exactly over the black one,
+   uncovered left to right. */
+.contact-value::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #FF2CBE;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.contact-row:hover .contact-value::after,
+.contact-row:focus-visible .contact-value::after {
+  width: 100%;
+}
+
+.contact-row:hover .contact-kind,
+.contact-row:focus-visible .contact-kind {
   color: #FF2CBE;
 }
 
@@ -380,37 +402,30 @@ a {
   transform: translateX(28px);
 }
 
-/* The photograph that trails the cursor. Position is written every
-   frame by script.js, so nothing here may set transform. */
-.contact-peek {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 210px;
-  height: 275px;
-  overflow: hidden;
-  pointer-events: none;
+.contact-go {
+  position: absolute;
+  right: 0;
+  bottom: 34px;
+  font-size: 30px;
+  line-height: 1;
+  color: #FF2CBE;
   opacity: 0;
-  z-index: 5;
-  transition: opacity 0.45s ease;
-  will-change: transform;
+  transform: translateX(-18px);
+  transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.contact-peek.is-on {
+.contact-row:hover .contact-go,
+.contact-row:focus-visible .contact-go {
   opacity: 1;
+  transform: none;
 }
 
-.contact-peek img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Nothing trails a finger, and the nudge needs a cursor to read. */
+/* Hover states do not survive a touchscreen — they latch on whatever
+   was tapped last — so the row stays as typed. */
 @media (hover: none) {
-  .contact-peek { display: none; }
   .contact-row:hover .contact-value { transform: none; }
+  .contact-row:hover .contact-value::after { width: 0; }
+  .contact-row:hover .contact-go { opacity: 0; }
 }
 
 .contact-item a {
