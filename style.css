@@ -169,6 +169,37 @@ a {
   color: var(--faint);
 }
 
+/* Answers the finger straight away, before the next photo can arrive. */
+.tap-ripple {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: #FF2CBE;
+  pointer-events: none;
+  z-index: 25;
+  animation: tap-pop 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tap-pop {
+  from { transform: scale(0.5); opacity: 0.5; }
+  to   { transform: scale(6); opacity: 0; }
+}
+
+/* The photo steps in from the side you tapped, so the tap reads as
+   having pushed it. On the figure rather than the image: the image is
+   busy fading itself in, and two rules on one property fight. */
+@keyframes step-from-right {
+  from { transform: translateX(30px); }
+  to   { transform: none; }
+}
+
+@keyframes step-from-left {
+  from { transform: translateX(-30px); }
+  to   { transform: none; }
+}
+
 /* Teaches the tap, then gets out of the way for good. */
 .tap-hint {
   display: none;
@@ -563,6 +594,14 @@ a {
 
   .tap-hint {
     display: block;
+  }
+
+  .gallery-figure.from-right {
+    animation: step-from-right 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .gallery-figure.from-left {
+    animation: step-from-left 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* A plain word in the corner does not read as a control on a phone.

@@ -85,9 +85,20 @@ PHOTOS.sort((a, b) => {
     for (let n = 1; n <= BEHIND; n++) preload(i - n);
   }
 
+  const figure = document.querySelector(".gallery-figure");
+
   function show(i) {
+    // Read the direction before the wrap, so stepping off either end
+    // still travels the way you asked rather than snapping back.
+    const dir = i > index ? 1 : i < index ? -1 : 0;
     index = (i + PHOTOS.length) % PHOTOS.length;
     const photo = PHOTOS[index];
+
+    if (dir && figure) {
+      figure.classList.remove("from-right", "from-left");
+      void figure.offsetWidth; // restart the animation rather than ignore it
+      figure.classList.add(dir > 0 ? "from-right" : "from-left");
+    }
 
     img.classList.remove("is-loaded");
     img.src = photo.src;
@@ -116,12 +127,28 @@ PHOTOS.sort((a, b) => {
     if (e.key === "ArrowRight") show(index + 1);
   });
 
+  function ripple(x, y) {
+    const dot = document.createElement("span");
+    dot.className = "tap-ripple";
+    dot.style.left = x + "px";
+    dot.style.top = y + "px";
+    document.body.appendChild(dot);
+    dot.addEventListener("animationend", () => dot.remove());
+    // Animations do not advance in a backgrounded tab, so animationend
+    // never arrives and the dots would pile up invisibly.
+    setTimeout(() => dot.remove(), 1200);
+  }
+
   // Mobile: click left/right halves to navigate
   document.addEventListener("click", (e) => {
     if (window.innerWidth > 640) return; // only on mobile
-    if (e.target.closest(".topbar")) return; // ignore header clicks
+    // Not every click target is an element — a click on the document
+    // itself has no closest() and used to throw here.
+    const hit = e.target;
+    if (hit instanceof Element && hit.closest(".topbar")) return;
     if (e.clientY < 60) return; // ignore top area where contact button is
 
+    ripple(e.clientX, e.clientY);
     const midpoint = window.innerWidth / 2;
     if (e.clientX < midpoint) {
       show(index - 1);
