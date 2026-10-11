@@ -128,15 +128,19 @@ PHOTOS.sort((a, b) => {
   });
 
   function ripple(x, y) {
-    const dot = document.createElement("span");
-    dot.className = "tap-ripple";
-    dot.style.left = x + "px";
-    dot.style.top = y + "px";
-    document.body.appendChild(dot);
-    dot.addEventListener("animationend", () => dot.remove());
-    // Animations do not advance in a backgrounded tab, so animationend
-    // never arrives and the dots would pile up invisibly.
-    setTimeout(() => dot.remove(), 1200);
+    // A centre that punches out fast under two rings that carry on
+    // expanding — the strike lands immediately and then opens up.
+    ["tap-spark", "tap-ripple", "tap-ripple echo"].forEach((cls) => {
+      const mark = document.createElement("span");
+      mark.className = cls;
+      mark.style.left = x + "px";
+      mark.style.top = y + "px";
+      document.body.appendChild(mark);
+      mark.addEventListener("animationend", () => mark.remove());
+      // Animations do not advance in a backgrounded tab, so animationend
+      // never arrives and these would pile up invisibly.
+      setTimeout(() => mark.remove(), 1400);
+    });
   }
 
   // Mobile: click left/right halves to navigate
