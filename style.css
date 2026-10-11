@@ -321,7 +321,9 @@ a {
   width: 100%;
   max-width: 700px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  /* Fits the number of entries rather than assuming two, so adding one
+     spreads the row instead of stranding it on a line of its own. */
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 60px 50px;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
