@@ -190,10 +190,13 @@ a {
   animation-duration: 0.72s;
 }
 
+/* --drift is set per mark by script.js: the rings travel the way the
+   photo is about to, so the feedback carries the direction of the tap
+   rather than just marking the spot. */
 @keyframes tap-ring {
-  0%   { transform: scale(0.35); opacity: 0.8; }
+  0%   { transform: translateX(0) scale(0.35); opacity: 0.8; }
   55%  { opacity: 0.3; }
-  100% { transform: scale(5.2); opacity: 0; }
+  100% { transform: translateX(var(--drift, 0px)) scale(5.2); opacity: 0; }
 }
 
 /* A solid centre that punches out fast, so the very first frame after
@@ -211,8 +214,24 @@ a {
 }
 
 @keyframes tap-spark {
-  from { transform: scale(1); opacity: 0.85; }
-  to   { transform: scale(2.1); opacity: 0; }
+  from { transform: translateX(0) scale(1); opacity: 0.85; }
+  to   { transform: translateX(calc(var(--drift, 0px) * 0.5)) scale(2.1); opacity: 0; }
+}
+
+/* The frame number rolls up as it changes, the way a film counter
+   would, and flares in the accent before settling back. */
+.count-now {
+  display: inline-block;
+}
+
+.count-now.rolling {
+  animation: count-roll 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes count-roll {
+  0%   { transform: translateY(8px); opacity: 0; color: #FF2CBE; }
+  50%  { color: #FF2CBE; }
+  100% { transform: none; opacity: 1; }
 }
 
 /* The photo steps in from the side you tapped, so the tap reads as

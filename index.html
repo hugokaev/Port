@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="stylesheet" href="style.css?v=22">
+<link rel="stylesheet" href="style.css?v=23">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
     <figcaption class="gallery-caption">
       <span id="galleryCaption"></span>
       <!-- Shown on mobile, where there are no arrows to imply a sequence. -->
-      <span class="gallery-count" id="galleryCount" aria-hidden="true"></span>
+      <span class="gallery-count" aria-hidden="true"><span class="count-now" id="countNow"></span> / <span id="countTotal"></span></span>
     </figcaption>
   </figure>
 
@@ -45,6 +45,6 @@
   <p>&copy; <span id="year"></span> Hugo Kae. All images on this site are copyright protected.</p>
 </footer>
 
-<script src="script.js?v=35"></script>
+<script src="script.js?v=36"></script>
 </body>
 </html>

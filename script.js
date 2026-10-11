@@ -59,7 +59,9 @@ PHOTOS.sort((a, b) => {
   if (!img) return; // not on the gallery page
 
   const caption = document.getElementById("galleryCaption");
-  const count = document.getElementById("galleryCount");
+  const countNow = document.getElementById("countNow");
+  const countTotal = document.getElementById("countTotal");
+  if (countTotal) countTotal.textContent = PHOTOS.length;
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
 
@@ -105,9 +107,13 @@ PHOTOS.sort((a, b) => {
     img.alt = photo.title || "";
 
     caption.textContent = [photo.title, photo.detail].filter(Boolean).join(", ");
-    if (count) {
-      count.textContent =
-        String(index + 1).padStart(2, "0") + " / " + PHOTOS.length;
+    if (countNow) {
+      countNow.textContent = String(index + 1).padStart(2, "0");
+      if (dir) {
+        countNow.classList.remove("rolling");
+        void countNow.offsetWidth; // restart rather than ignore
+        countNow.classList.add("rolling");
+      }
     }
 
     // An already-cached photo fires no load event, so reveal it immediately
@@ -127,14 +133,16 @@ PHOTOS.sort((a, b) => {
     if (e.key === "ArrowRight") show(index + 1);
   });
 
-  function ripple(x, y) {
+  function ripple(x, y, dir) {
     // A centre that punches out fast under two rings that carry on
-    // expanding — the strike lands immediately and then opens up.
+    // expanding — the strike lands immediately and then opens up — and
+    // the whole mark leans the way the photo is about to travel.
     ["tap-spark", "tap-ripple", "tap-ripple echo"].forEach((cls) => {
       const mark = document.createElement("span");
       mark.className = cls;
       mark.style.left = x + "px";
       mark.style.top = y + "px";
+      mark.style.setProperty("--drift", (dir > 0 ? 20 : -20) + "px");
       document.body.appendChild(mark);
       mark.addEventListener("animationend", () => mark.remove());
       // Animations do not advance in a backgrounded tab, so animationend
@@ -152,13 +160,9 @@ PHOTOS.sort((a, b) => {
     if (hit instanceof Element && hit.closest(".topbar")) return;
     if (e.clientY < 60) return; // ignore top area where contact button is
 
-    ripple(e.clientX, e.clientY);
-    const midpoint = window.innerWidth / 2;
-    if (e.clientX < midpoint) {
-      show(index - 1);
-    } else {
-      show(index + 1);
-    }
+    const forward = e.clientX >= window.innerWidth / 2;
+    ripple(e.clientX, e.clientY, forward ? 1 : -1);
+    show(forward ? index + 1 : index - 1);
   });
 
   // basic touch swipe
