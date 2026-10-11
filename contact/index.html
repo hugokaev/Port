@@ -6,7 +6,7 @@
 <title>Contact — Hugo Kae</title>
 <meta name="description" content="Contact Hugo Kae">
 <link rel="icon" type="image/png" href="../favicon.png">
-<link rel="stylesheet" href="../style.css?v=16">
+<link rel="stylesheet" href="../style.css?v=18">
 </head>
 <body>
 
@@ -18,30 +18,33 @@
 </header>
 
 <main class="contact-main">
-  <div class="contact-grid">
+  <div class="contact-list">
 
-    <div class="contact-item">
-      <h2>Enquiries</h2>
-      <p><a href="mailto:hugo@hugokae.com">hugo@hugokae.com</a></p>
-    </div>
+    <a class="contact-row" href="mailto:hugo@hugokae.com">
+      <span class="contact-kind">enquiries</span>
+      <span class="contact-value">hugo@hugokae.com</span>
+    </a>
 
-    <div class="contact-item">
-      <h2>Management</h2>
-      <p><a href="mailto:mina@hugokae.com">mina@hugokae.com</a></p>
-    </div>
+    <a class="contact-row" href="mailto:mina@hugokae.com">
+      <span class="contact-kind">management</span>
+      <span class="contact-value">mina@hugokae.com</span>
+    </a>
 
-    <div class="contact-item">
-      <h2>Instagram</h2>
-      <p><a href="https://instagram.com/hugokae_" target="_blank" rel="noopener noreferrer">@hugokae_</a></p>
-    </div>
+    <a class="contact-row" href="https://instagram.com/hugokae_" target="_blank" rel="noopener noreferrer">
+      <span class="contact-kind">instagram</span>
+      <span class="contact-value">@hugokae_</span>
+    </a>
 
   </div>
+
+  <!-- Filled by script.js: a photograph trails the cursor down the list. -->
+  <div class="contact-peek" id="contactPeek" aria-hidden="true"></div>
 </main>
 
 <footer class="site-footer">
   <p>&copy; <span id="year"></span> Hugo Kae. All images on this site are copyright protected.</p>
 </footer>
 
-<script src="../script.js?v=28"></script>
+<script src="../script.js?v=30"></script>
 </body>
 </html>

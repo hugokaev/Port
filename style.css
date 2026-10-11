@@ -315,38 +315,102 @@ a {
   align-items: center;
   justify-content: center;
   padding: 150px 40px 100px;
+  position: relative;
 }
 
-.contact-grid {
+.contact-list {
   width: 100%;
-  max-width: 700px;
-  display: grid;
-  /* Fits the number of entries rather than assuming two, so adding one
-     spreads the row instead of stranding it on a line of its own. */
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 60px 50px;
+  max-width: 760px;
+}
+
+.contact-row {
+  display: block;
+  position: relative;
+  padding: 30px 0;
   border-top: 1px solid var(--border);
+  transition: color 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.contact-row:last-child {
   border-bottom: 1px solid var(--border);
-  padding: 60px 0;
 }
 
-.contact-item {
-  text-align: center;
+/* The rule above the row redraws in pink, left to right. */
+.contact-row::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 1px;
+  width: 0;
+  background: #FF2CBE;
+  transition: width 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.contact-item h2 {
+.contact-row:hover::after,
+.contact-row:focus-visible::after {
+  width: 100%;
+}
+
+.contact-kind {
+  display: block;
   font-size: 11px;
-  font-weight: 600;
   letter-spacing: 0.2em;
-  text-transform: uppercase;
   color: var(--faint);
-  margin: 0 0 16px;
-  text-transform: lowercase;
+  margin-bottom: 12px;
+  transition: color 0.4s ease;
 }
 
-.contact-item p {
-  margin: 6px 0;
-  font-size: 16px;
+.contact-value {
+  display: block;
+  font-size: clamp(30px, 5.6vw, 58px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.contact-row:hover,
+.contact-row:focus-visible,
+.contact-row:hover .contact-kind {
+  color: #FF2CBE;
+}
+
+.contact-row:hover .contact-value,
+.contact-row:focus-visible .contact-value {
+  transform: translateX(28px);
+}
+
+/* The photograph that trails the cursor. Position is written every
+   frame by script.js, so nothing here may set transform. */
+.contact-peek {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 210px;
+  height: 275px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 5;
+  transition: opacity 0.45s ease;
+  will-change: transform;
+}
+
+.contact-peek.is-on {
+  opacity: 1;
+}
+
+.contact-peek img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Nothing trails a finger, and the nudge needs a cursor to read. */
+@media (hover: none) {
+  .contact-peek { display: none; }
+  .contact-row:hover .contact-value { transform: none; }
 }
 
 .contact-item a {
@@ -439,10 +503,8 @@ a {
     padding: 80px 24px 40px;
   }
 
-  .contact-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-    padding: 40px 0;
+  .contact-row {
+    padding: 22px 0;
   }
 
   .site-footer {

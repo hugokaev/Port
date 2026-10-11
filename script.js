@@ -225,6 +225,85 @@ PHOTOS.sort((a, b) => {
   });
 })();
 
+// Contact page: a photograph trails the cursor down the list, so the
+// page is built from the work rather than only pointing at it.
+(function () {
+  const peek = document.getElementById("contactPeek");
+  const rows = Array.prototype.slice.call(document.querySelectorAll(".contact-row"));
+  if (!peek || !rows.length || typeof PHOTOS === "undefined") return;
+  if (!matchMedia("(hover: hover)").matches) return;
+
+  const W = 210, H = 275;
+  const list = document.querySelector(".contact-list");
+  let active = null;
+  const thumb = (p) => "../" + p.src.replace("images/web/", "images/thumb/");
+
+  // Spread the picks across the set rather than taking the first few.
+  const picks = rows.map((_, i) => PHOTOS[Math.floor((i * PHOTOS.length) / rows.length)]);
+  picks.forEach((p) => { const warm = new Image(); warm.src = thumb(p); });
+
+  const img = document.createElement("img");
+  img.alt = "";
+  img.draggable = false;
+  peek.appendChild(img);
+
+  let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, showing = false;
+
+  // Anchored to the empty right-hand end of the row rather than to the
+  // pointer: following the cursor put the photograph straight over the
+  // address you were reading. The cursor still shifts it a little, so it
+  // feels alive, and it slides between rows as you move down the list.
+  function place(e) {
+    if (!active) return;
+    const bounds = list.getBoundingClientRect();
+    const row = active.getBoundingClientRect();
+    const mid = row.top + row.height / 2;
+
+    tx = Math.min(bounds.right - W, innerWidth - W - 16) +
+         (e.clientX / innerWidth - 0.5) * 26;
+    ty = Math.max(16, Math.min(
+      mid - H / 2 + (e.clientY - mid) * 0.18,
+      innerHeight - H - 16
+    ));
+  }
+
+  function frame() {
+    const dx = tx - cx, dy = ty - cy;
+    cx += dx * 0.14;
+    cy += dy * 0.14;
+    // Lean into the movement; it settles upright as it catches up.
+    peek.style.transform =
+      "translate3d(" + cx.toFixed(1) + "px," + cy.toFixed(1) + "px,0) rotate(" +
+      Math.max(-6, Math.min(6, dx * 0.04)).toFixed(2) + "deg)";
+    raf = showing || Math.abs(dx) > 0.4 || Math.abs(dy) > 0.4
+      ? requestAnimationFrame(frame)
+      : 0;
+  }
+
+  rows.forEach((row, i) => {
+    row.addEventListener("pointerenter", (e) => {
+      if (e.pointerType === "touch") return;
+      img.src = thumb(picks[i]);
+      active = row;
+      place(e);
+      if (!showing) { cx = tx; cy = ty; } // arrive in place, not from the corner
+      showing = true;
+      peek.classList.add("is-on");
+      if (!raf) raf = requestAnimationFrame(frame);
+    });
+    row.addEventListener("pointerleave", () => {
+      showing = false;
+      peek.classList.remove("is-on");
+    });
+  });
+
+  addEventListener("pointermove", (e) => {
+    if (!showing) return;
+    place(e);
+    if (!raf) raf = requestAnimationFrame(frame);
+  });
+})();
+
 // Zoom the current view out before following a top-bar link, so moving
 // between views reads as one motion. The photo page handles its own
 // link above, where it can fly the photo itself.
