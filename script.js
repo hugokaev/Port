@@ -59,6 +59,7 @@ PHOTOS.sort((a, b) => {
   if (!img) return; // not on the gallery page
 
   const caption = document.getElementById("galleryCaption");
+  const count = document.getElementById("galleryCount");
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
 
@@ -93,6 +94,10 @@ PHOTOS.sort((a, b) => {
     img.alt = photo.title || "";
 
     caption.textContent = [photo.title, photo.detail].filter(Boolean).join(", ");
+    if (count) {
+      count.textContent =
+        String(index + 1).padStart(2, "0") + " / " + PHOTOS.length;
+    }
 
     // An already-cached photo fires no load event, so reveal it immediately
     // rather than leaving the frame blank.
@@ -162,6 +167,22 @@ PHOTOS.sort((a, b) => {
   }
 
   show(valid ? requested : 0);
+
+  // Show the tap hint once a visit. Repeating it every time would nag
+  // about something you already know.
+  (function () {
+    const hint = document.getElementById("tapHint");
+    if (!hint || !matchMedia("(max-width: 640px)").matches) return;
+    try {
+      if (sessionStorage.getItem("hk:tapped")) return;
+      sessionStorage.setItem("hk:tapped", "1");
+    } catch (e) { /* private browsing: show it, just do not remember */ }
+
+    setTimeout(() => hint.classList.add("is-on"), 700);
+    setTimeout(() => hint.classList.remove("is-on"), 3600);
+    // Dismiss early once the gesture has been used.
+    addEventListener("pointerdown", () => hint.classList.remove("is-on"), { once: true });
+  })();
 
   // Where this photo sits in the grid: dead centre, because the grid is
   // told to open panned onto that cell. Measured from a hidden copy of
