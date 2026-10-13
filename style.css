@@ -436,8 +436,13 @@ a {
   max-width: 760px;
 }
 
+/* The address and its mark share a row so the mark tracks the type's
+   centre at any size, rather than being held at a fixed offset tuned to
+   one of them. */
 .contact-row {
-  display: block;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
   position: relative;
   padding: 30px 0;
   border-top: 1px solid var(--border);
@@ -466,7 +471,7 @@ a {
 }
 
 .contact-kind {
-  display: block;
+  grid-column: 1 / -1;
   font-size: 11px;
   letter-spacing: 0.2em;
   color: var(--faint);
@@ -516,10 +521,8 @@ a {
 }
 
 .contact-go {
-  position: absolute;
-  right: 0;
-  bottom: 34px;
-  font-size: 30px;
+  justify-self: end;
+  font-size: 26px;
   line-height: 1;
   color: #FF2CBE;
   opacity: 0;
@@ -541,14 +544,19 @@ a {
   .contact-row:hover .contact-go { opacity: 0; }
 }
 
-.contact-item a {
-  border-bottom: 1px solid transparent;
-  transition: all 0.3s cubic-bezier(0.2, 0, 0.8, 1);
+/* Instagram is the lesser route: set smaller and given more air above
+   it, so the booking address reads as the way in without the second
+   entry looking like an afterthought. */
+.contact-row--aside {
+  padding-top: 46px;
 }
 
-.contact-item a:hover {
-  border-bottom-color: var(--ink);
-  opacity: 0.7;
+.contact-row--aside .contact-value {
+  font-size: clamp(22px, 3.4vw, 34px);
+}
+
+.contact-row--aside .contact-go {
+  font-size: 19px;
 }
 
 /* ---------- footer ---------- */
@@ -661,6 +669,12 @@ a {
 
   .contact-row {
     padding: 22px 0;
+  }
+
+  /* Restated because the rule above resets the shorthand, which would
+     otherwise flatten the hierarchy to a single spacing on phones. */
+  .contact-row--aside {
+    padding-top: 34px;
   }
 
   .site-footer {
