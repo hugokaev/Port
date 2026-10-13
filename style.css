@@ -358,6 +358,9 @@ a {
   /* Read by both pages: the grid lays cells out at this size, and the
      photo page needs it to know where a photo shrinks back to. */
   --watch-cell: 230px;
+  /* Shallow enough that the lift reads as depth rather than as a photo
+     flying off the page. */
+  perspective: 1100px;
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -379,6 +382,10 @@ a {
   top: 50%;
   width: 0;
   height: 0;
+  /* The cells are grandchildren, so the perspective on .watch only
+     reaches them if the canvas keeps its children in 3D rather than
+     flattening them into its own plane. */
+  transform-style: preserve-3d;
 }
 
 /* The exception: on the way out the frame loop stops, so the last
@@ -395,7 +402,11 @@ a {
   overflow: hidden;
   background: none;
   cursor: pointer;
-  will-change: transform, opacity;
+  will-change: transform;
+  /* Lets the dome settle rather than snap from one pointer position to
+     the next. Panning moves cells with left/top, not transform, so this
+     never fights the frame loop. */
+  transition: transform 0.26s var(--soft);
 }
 
 .watch-cell img {

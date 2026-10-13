@@ -182,6 +182,8 @@
       }
     }
 
+    dome();
+
     for (const [key, it] of pool) {
       if (!seen.has(key)) {
         it.el.remove();
@@ -195,6 +197,63 @@
       "translate3d(" + panX + "px," + panY + "px,0) scale(" + introScale.toFixed(4) + ")";
     canvas.style.opacity = eased.toFixed(3);
   }
+
+  // --- the dome ------------------------------------------------------
+  // The photo under the cursor rises towards the viewer and the grid
+  // around it leans in, as though the whole sheet were being pulled
+  // forward at that one point. Everything is driven off distance from
+  // the cursor, so there is no special case for the hovered cell: it is
+  // simply the one where that distance is zero.
+  const LIFT = 78;      // px towards the viewer at the peak
+  const GROW = 0.1;     // extra scale at the peak
+  const LEAN = 11;      // degrees a neighbour tilts to face the peak
+  const DRAW = 0.09;    // how far neighbours are drawn towards it
+  const canHover = matchMedia("(hover: hover)").matches &&
+                   !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let domeX = null, domeY = null;
+
+  function dome() {
+    if (!canHover) return;
+
+    if (domeX === null) {
+      for (const it of pool.values()) it.el.style.transform = "";
+      return;
+    }
+
+    // Reach is tied to the pitch so the effect covers roughly the ring
+    // of neighbours whatever the cells are sized at.
+    const reach = metrics().pitch * 1.35;
+
+    for (const it of pool.values()) {
+      const dx = it.x - domeX, dy = it.y - domeY;
+      // Smooth and never quite zero, so there is no edge where cells
+      // visibly pop in and out of the effect.
+      const fall = 1 / (1 + (dx * dx + dy * dy) / (reach * reach));
+
+      it.el.style.transform =
+        "translate3d(" + (-dx * DRAW * fall).toFixed(2) + "px," +
+        (-dy * DRAW * fall).toFixed(2) + "px," +
+        (LIFT * fall).toFixed(2) + "px)" +
+        " rotateX(" + (-(dy / reach) * LEAN * fall).toFixed(2) + "deg)" +
+        " rotateY(" + ((dx / reach) * LEAN * fall).toFixed(2) + "deg)" +
+        " scale(" + (1 + GROW * fall).toFixed(4) + ")";
+    }
+  }
+
+  canvas.parentElement.addEventListener("pointermove", (e) => {
+    if (!canHover || e.pointerType === "touch") return;
+    // Cursor in the canvas's own coordinates: the canvas is a zero-sized
+    // point at the grid's origin, so its rect gives that origin on screen.
+    const o = canvas.getBoundingClientRect();
+    domeX = e.clientX - o.left;
+    domeY = e.clientY - o.top;
+    dome();
+  });
+
+  canvas.parentElement.addEventListener("pointerleave", () => {
+    domeX = domeY = null;
+    dome();
+  });
 
   // Input nudges a target; the cluster eases towards it each frame, so it
   // drifts rather than snapping to the pointer.
