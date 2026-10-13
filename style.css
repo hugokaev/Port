@@ -403,10 +403,14 @@ a {
   background: none;
   cursor: pointer;
   will-change: transform;
-  /* Lets the dome settle rather than snap from one pointer position to
+  /* The warp maps this box onto four moved corners, so the matrix is
+     written from the top-left rather than the middle. */
+  transform-origin: 0 0;
+  /* Lets the warp settle rather than snap from one pointer position to
      the next. Panning moves cells with left/top, not transform, so this
-     never fights the frame loop. */
-  transition: transform 0.26s var(--soft),
+     never fights the frame loop. Shorter than the fade: the sheet should
+     feel like it is being pulled by the cursor, not catching up with it. */
+  transition: transform 0.18s var(--soft),
               opacity 0.26s var(--soft),
               box-shadow 0.26s var(--soft);
 }

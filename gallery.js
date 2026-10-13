@@ -200,18 +200,64 @@
     canvas.style.opacity = eased.toFixed(3);
   }
 
-  // --- the dome ------------------------------------------------------
-  // The photo under the cursor rises towards the viewer and the grid
-  // around it leans in, as though the whole sheet were being pulled
-  // forward at that one point. Everything is driven off distance from
-  // the cursor, so there is no special case for the hovered cell: it is
-  // simply the one where that distance is zero.
-  const LIFT = 110;     // px towards the viewer at the peak
-  const LEAN = 7;       // degrees a neighbour tilts to face the peak
+  // --- the warp ------------------------------------------------------
+  // Think of the grid as a sheet of rubber with the photos printed on
+  // it. The cursor pulls one point of that sheet towards the viewer, and
+  // everything printed nearby is dragged out of shape by it: the photo
+  // under the cursor swells, and the ones around it stretch and skew
+  // towards it, each corner pulled by how near that corner is rather
+  // than the photo as a whole.
+  //
+  // That is the difference from tilting each photo rigidly. Height is a
+  // field over the whole sheet, read separately at every corner of every
+  // photo, so two photos meeting at a seam read the same height there
+  // and distort together instead of sliding past one another.
+  const LIFT = 260;     // px the sheet rises at the cursor
+  const DEPTH = 1000;   // viewing distance the risen sheet is seen through
   const DIM = 0.4;      // how far the surroundings fade back
   const canHover = matchMedia("(hover: hover)").matches &&
                    !matchMedia("(prefers-reduced-motion: reduce)").matches;
   let domeX = null, domeY = null, peakCell = null;
+
+  // How far the sheet has risen under one point, and so how much the
+  // view spreads it away from the cursor. The bell is squared to keep
+  // the swell local: past a photo or two the sheet is flat again.
+  function spread(x, y, reach) {
+    const dx = x - domeX, dy = y - domeY;
+    const g = 1 / (1 + (dx * dx + dy * dy) / (reach * reach));
+    return DEPTH / (DEPTH - LIFT * g * g);
+  }
+
+  // The transform that lands a photo's own box on four arbitrary corners.
+  // Four corners that are no longer a rectangle cannot be reached by
+  // scaling and rotation — it takes a projective map, which is what the
+  // bottom row of a matrix3d is for. The box is normalised to a unit
+  // square first, so the same matrix works whatever the photo's size.
+  function quadTransform(w, h, q) {
+    const x0 = q[0], y0 = q[1], x1 = q[2], y1 = q[3],
+          x2 = q[4], y2 = q[5], x3 = q[6], y3 = q[7];
+    const dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3;
+    const dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3;
+    const den = dx1 * dy2 - dy1 * dx2;
+
+    let a, b, c, d, e, f, g, i;
+    if (!den || (dx3 === 0 && dy3 === 0)) {
+      // Still a parallelogram: no perspective term needed.
+      g = i = 0;
+      a = x1 - x0; b = x3 - x0; c = x0;
+      d = y1 - y0; e = y3 - y0; f = y0;
+    } else {
+      g = (dx3 * dy2 - dy3 * dx2) / den;
+      i = (dx1 * dy3 - dy1 * dx3) / den;
+      a = x1 - x0 + g * x1; b = x3 - x0 + i * x3; c = x0;
+      d = y1 - y0 + g * y1; e = y3 - y0 + i * y3; f = y0;
+    }
+
+    return "matrix3d(" +
+      [a, d, 0, g, b, e, 0, i, 0, 0, 1, 0, c, f, 0, 1]
+        .map((n) => n.toFixed(6)).join(",") +
+      ") scale(" + 1 / w + "," + 1 / h + ")";
+  }
 
   function dome() {
     if (!canHover) return;
@@ -223,14 +269,13 @@
         it.el.classList.remove("is-peak");
       }
       peakCell = null;
-      canvas.parentElement.style.perspectiveOrigin = "";
       return;
     }
 
-    // Reach is tied to the pitch so the effect covers roughly the ring
-    // of neighbours whatever the cells are sized at.
+    // Reach is tied to the pitch so the swell covers roughly the ring of
+    // neighbours whatever the cells are sized at.
     const pitch = metrics().pitch;
-    const reach = pitch * 1.1;
+    const reach = pitch * 1.15;
 
     // The photo to name is the one the cursor is actually inside, not
     // the nearest centre: the cells are different shapes, so a tall
@@ -239,40 +284,37 @@
     let peak = null, near = null, best = Infinity;
 
     for (const it of pool.values()) {
+      if (!it.w) continue;
       const dx = it.x - domeX, dy = it.y - domeY;
       const d2 = dx * dx + dy * dy;
       if (d2 < best) { best = d2; near = it; }
       if (Math.abs(dx) <= it.w / 2 && Math.abs(dy) <= it.h / 2) peak = it;
 
-      // Smooth and never quite zero, so there is no edge where cells
-      // visibly pop in and out of the effect. Squaring narrows the
-      // peak: the photo under the cursor keeps the whole lift while its
-      // neighbours take only a quarter of it, so they settle instead of
-      // swinging about every time the cursor crosses the grid.
+      // The surroundings fade back on a wider, gentler curve than the
+      // warp. Shape alone is a weak cue at this scale; losing contrast
+      // is what actually tells you which photo you are pointing at.
       const close = 1 / (1 + d2 / (reach * reach));
-      const fall = close * close;
-
-      // The surroundings also fade back, on the wider curve so the
-      // falling-away is gradual. Depth alone is a weak cue at this
-      // shallow a perspective; losing contrast is what actually tells
-      // you which photo you are pointing at.
       it.el.style.opacity = (1 - DIM * (1 - close)).toFixed(3);
 
-      // Depth and tilt only. Scaling each cell on its own, and drawing
-      // them inward, is what made them overlap: both the raised photo
-      // and its neighbours grew into the same gap while the gap itself
-      // was closing. Size is left to the perspective projection below,
-      // which enlarges a cell and moves it outward by the same factor —
-      // so the spacing opens as the surface rises instead of collapsing.
-      it.el.style.transform =
-        "translateZ(" + (LIFT * fall).toFixed(2) + "px)" +
-        " rotateX(" + (-(dy / reach) * LEAN * fall).toFixed(2) + "deg)" +
-        " rotateY(" + ((dx / reach) * LEAN * fall).toFixed(2) + "deg)";
+      // Each corner is moved away from the cursor by however far the
+      // sheet has risen beneath that corner. A corner facing the cursor
+      // is carried further than the one behind it, which is what skews
+      // the photo towards the swell rather than merely enlarging it.
+      const L = it.x - it.w / 2, T = it.y - it.h / 2;
+      const cx = [L, L + it.w, L + it.w, L];
+      const cy = [T, T, T + it.h, T + it.h];
+      const q = new Array(8);
+      for (let k = 0; k < 4; k++) {
+        const s = spread(cx[k], cy[k], reach);
+        q[k * 2] = domeX + (cx[k] - domeX) * s - L;
+        q[k * 2 + 1] = domeY + (cy[k] - domeY) * s - T;
+      }
+      it.el.style.transform = quadTransform(it.w, it.h, q);
     }
 
-    // One cell is named outright. Everything above is a smooth field, so
-    // nothing in it can carry a cue that only belongs to the photo being
-    // pointed at — the shadow that lifts it clear of the sheet.
+    // One cell is named outright. The warp is a smooth field, so nothing
+    // in it can carry a cue that belongs only to the photo being pointed
+    // at — the shadow that lifts it clear of the sheet.
     // In the gaps between photos, stay with the nearest one rather than
     // dropping the cue: letting it blink out as the cursor crosses a
     // seam is more distracting than being a few pixels generous.
@@ -292,15 +334,8 @@
     domeX = e.clientX - o.left;
     domeY = e.clientY - o.top;
 
-    // Project from the cursor rather than from the middle of the frame.
-    // A raised cell is magnified away from the vanishing point, so with
-    // the vanishing point under the finger the photo you are pointing at
-    // grows in place while the rest spread outwards around it.
-    const frame = canvas.parentElement;
-    const fr = frame.getBoundingClientRect();
-    frame.style.perspectiveOrigin =
-      (e.clientX - fr.left).toFixed(1) + "px " + (e.clientY - fr.top).toFixed(1) + "px";
-
+    // The warp does its own projection, corner by corner, so there is no
+    // vanishing point for the frame to track any more.
     dome();
   });
 
@@ -483,6 +518,17 @@
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
 
     const thumb = it.el.querySelector("img");
+    // The photo flies as a rectangle, so it has to leave from its own
+    // rectangle rather than from a warped quad. Release the sheet first,
+    // with this cell's transition suppressed so that what is measured is
+    // what is on screen; the rest of the grid relaxes as it fades out.
+    domeX = domeY = null;
+    const held = it.el.style.transition;
+    it.el.style.transition = "none";
+    dome();
+    thumb.getBoundingClientRect();
+    it.el.style.transition = held;
+
     // The listed ratio is the full file's, which is what the photo page
     // will lay out from — the thumbnail's own can differ by rounding.
     const ratio = ratios[it.index];
