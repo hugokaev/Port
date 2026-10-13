@@ -233,10 +233,14 @@ PHOTOS.sort((a, b) => {
     return { left: origin.left - w / 2, top: origin.top - h / 2, width: w, height: h };
   }
 
-  document.querySelectorAll('[data-zoom-to="/gallery/"]').forEach((link) => {
-    link.addEventListener("click", (e) => {
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-      e.preventDefault();
+  let flying = false;
+
+  function flyToGallery() {
+      // A second click would start a second flight and a second
+      // navigation, and the page that lost the race arrives with nothing
+      // telling it where to open.
+      if (flying) return;
+      flying = true;
 
       const from = img.getBoundingClientRect();
       const to = gridLanding();
@@ -268,7 +272,24 @@ PHOTOS.sort((a, b) => {
       flight.style.transform = "none";
 
       setTimeout(() => { location.href = "/gallery/"; }, 540);
+  }
+
+  document.querySelectorAll('[data-zoom-to="/gallery/"]').forEach((link) => {
+    link.addEventListener("click", (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      flyToGallery();
     });
+  });
+
+  // Clicking the photo itself is the same move as the Gallery button:
+  // it pulls back into the grid with this photo in the middle, which is
+  // where the flight lands it. On a phone the two halves of the screen
+  // already step through the photos, so that gesture is left alone.
+  img.addEventListener("click", (e) => {
+    if (window.innerWidth <= 640) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    flyToGallery();
   });
 })();
 

@@ -212,9 +212,9 @@
   // field over the whole sheet, read separately at every corner of every
   // photo, so two photos meeting at a seam read the same height there
   // and distort together instead of sliding past one another.
-  const LIFT = 260;     // px the sheet rises at the cursor
+  const LIFT = 400;     // px the sheet rises at the cursor
   const DEPTH = 1000;   // viewing distance the risen sheet is seen through
-  const DIM = 0.4;      // how far the surroundings fade back
+  const BLUR = 5;       // px the far edges of the sheet are thrown out of focus
   const canHover = matchMedia("(hover: hover)").matches &&
                    !matchMedia("(prefers-reduced-motion: reduce)").matches;
   let domeX = null, domeY = null, peakCell = null;
@@ -265,7 +265,7 @@
     if (domeX === null) {
       for (const it of pool.values()) {
         it.el.style.transform = "";
-        it.el.style.opacity = "";
+        it.el.style.filter = "";
         it.el.classList.remove("is-peak");
       }
       peakCell = null;
@@ -275,7 +275,8 @@
     // Reach is tied to the pitch so the swell covers roughly the ring of
     // neighbours whatever the cells are sized at.
     const pitch = metrics().pitch;
-    const reach = pitch * 1.15;
+    const reach = pitch * 1.05;
+    const blurReach = pitch * 2;
 
     // The photo to name is the one the cursor is actually inside, not
     // the nearest centre: the cells are different shapes, so a tall
@@ -290,11 +291,14 @@
       if (d2 < best) { best = d2; near = it; }
       if (Math.abs(dx) <= it.w / 2 && Math.abs(dy) <= it.h / 2) peak = it;
 
-      // The surroundings fade back on a wider, gentler curve than the
-      // warp. Shape alone is a weak cue at this scale; losing contrast
-      // is what actually tells you which photo you are pointing at.
-      const close = 1 / (1 + d2 / (reach * reach));
-      it.el.style.opacity = (1 - DIM * (1 - close)).toFixed(3);
+      // Focus falls off with distance, on a much wider curve than the
+      // warp, so the photos out at the edges go soft while the ones you
+      // are among stay sharp. Quantised to half a pixel: a blur is
+      // re-rendered whenever its radius changes, and the eye cannot tell
+      // 2.5px from 2.6px anyway.
+      const soft = d2 / (d2 + blurReach * blurReach);
+      const px = Math.round(BLUR * soft * 2) / 2;
+      it.el.style.filter = px > 0.25 ? "blur(" + px + "px)" : "";
 
       // Each corner is moved away from the cursor by however far the
       // sheet has risen beneath that corner. A corner facing the cursor
@@ -319,6 +323,8 @@
     // dropping the cue: letting it blink out as the cursor crosses a
     // seam is more distracting than being a few pixels generous.
     if (!peak && best <= (pitch * 0.75) * (pitch * 0.75)) peak = near;
+    // Whatever the falloff says, the photo being pointed at is in focus.
+    if (peak) peak.el.style.filter = "";
     if (peak !== peakCell) {
       if (peakCell) peakCell.el.classList.remove("is-peak");
       if (peak) peak.el.classList.add("is-peak");

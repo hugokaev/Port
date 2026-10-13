@@ -185,6 +185,9 @@ a {
 
 .gallery-figure img {
   display: block;
+  /* Clicking the photo pulls back into the grid, so say so. Phones use
+     the two halves of the screen to step through photos instead. */
+  cursor: zoom-out;
   max-width: 100%;
   /* Leaves 24px above and below the whole figure, caption included. A
      flat 90vh measured the photo alone and let the caption run past the
@@ -357,7 +360,7 @@ a {
 .watch {
   /* Read by both pages: the grid lays cells out at this size, and the
      photo page needs it to know where a photo shrinks back to. */
-  --watch-cell: 230px;
+  --watch-cell: 260px;
   /* Shallow enough that the lift reads as depth rather than as a photo
      flying off the page. */
   perspective: 1100px;
@@ -411,7 +414,7 @@ a {
      never fights the frame loop. Shorter than the fade: the sheet should
      feel like it is being pulled by the cursor, not catching up with it. */
   transition: transform 0.18s var(--soft),
-              opacity 0.26s var(--soft),
+              filter 0.26s var(--soft),
               box-shadow 0.26s var(--soft);
 }
 
@@ -428,14 +431,6 @@ a {
   object-fit: cover;
   display: block;
   user-select: none;
-}
-
-.watch-cell img {
-  transition: transform 0.3s var(--soft);
-}
-
-.watch-cell:hover img {
-  transform: scale(1.05);
 }
 
 /* Whichever view you are leaving clears while the chosen photo travels
@@ -684,7 +679,7 @@ a {
   }
 
   .watch {
-    --watch-cell: 150px;
+    --watch-cell: 168px;
   }
 
   /* Sit a little above centre on a tall screen, which otherwise leaves
