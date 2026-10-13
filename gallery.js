@@ -217,7 +217,12 @@
   const BLUR = 5;       // px the far edges of the sheet are thrown out of focus
   const canHover = matchMedia("(hover: hover)").matches &&
                    !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let domeX = null, domeY = null, peakCell = null;
+  // The cursor is kept in window coordinates, not grid coordinates. The
+  // grid slides under a cursor that has not moved — whenever you pan or
+  // scroll — so a position stored against the grid walks away from the
+  // pointer until you nudge the mouse to correct it.
+  let ptrX = null, ptrY = null;
+  let domeX = 0, domeY = 0, peakCell = null;
 
   // How far the sheet has risen under one point, and so how much the
   // view spreads it away from the cursor. The bell is squared to keep
@@ -262,7 +267,7 @@
   function dome() {
     if (!canHover) return;
 
-    if (domeX === null) {
+    if (ptrX === null) {
       for (const it of pool.values()) {
         it.el.style.transform = "";
         it.el.style.filter = "";
@@ -271,6 +276,13 @@
       peakCell = null;
       return;
     }
+
+    // Where the cursor falls on the grid right now. The canvas is a
+    // zero-sized point at the grid's origin, so its own box gives that
+    // origin on screen — read every pass, since panning moves it.
+    const o = canvas.getBoundingClientRect();
+    domeX = ptrX - o.left;
+    domeY = ptrY - o.top;
 
     // Reach is tied to the pitch so the swell covers roughly the ring of
     // neighbours whatever the cells are sized at.
@@ -332,21 +344,22 @@
     }
   }
 
-  canvas.parentElement.addEventListener("pointermove", (e) => {
-    if (!canHover || e.pointerType === "touch") return;
-    // Cursor in the canvas's own coordinates: the canvas is a zero-sized
-    // point at the grid's origin, so its rect gives that origin on screen.
-    const o = canvas.getBoundingClientRect();
-    domeX = e.clientX - o.left;
-    domeY = e.clientY - o.top;
+  // Tracked on the page rather than on the frame. The top bar is laid
+  // over the grid, so a cursor near the top edge was leaving the frame
+  // and collapsing the whole warp, which sprang back the moment the
+  // cursor dropped below the bar again. The pointer is only really gone
+  // when it leaves the window.
+  const page = document.documentElement;
 
-    // The warp does its own projection, corner by corner, so there is no
-    // vanishing point for the frame to track any more.
+  page.addEventListener("pointermove", (e) => {
+    if (!canHover || e.pointerType === "touch") return;
+    ptrX = e.clientX;
+    ptrY = e.clientY;
     dome();
   });
 
-  canvas.parentElement.addEventListener("pointerleave", () => {
-    domeX = domeY = null;
+  page.addEventListener("pointerleave", () => {
+    ptrX = ptrY = null;
     dome();
   });
 
@@ -528,7 +541,7 @@
     // rectangle rather than from a warped quad. Release the sheet first,
     // with this cell's transition suppressed so that what is measured is
     // what is on screen; the rest of the grid relaxes as it fades out.
-    domeX = domeY = null;
+    ptrX = ptrY = null;
     const held = it.el.style.transition;
     it.el.style.transition = "none";
     dome();
