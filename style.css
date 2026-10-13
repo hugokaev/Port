@@ -3,6 +3,41 @@
   --muted: #8c8c8c;
   --faint: #bdbdbd;
   --border: #e6e6e6;
+  --accent: #FF2CBE;
+
+  /* One motion language. Six different curves had accumulated, which is
+     why some moves felt unrelated to others. --settle decelerates hard
+     and is the house curve; --leave accelerates away for anything
+     exiting; --soft is for small fades. */
+  --settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --leave: cubic-bezier(0.5, 0, 0.9, 0.9);
+  --soft: cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+/* The site is driven by movement, so for anyone who asks for less of it
+   the honest answer is to cut it entirely rather than merely shorten
+   it — every effect here still resolves to its finished state. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Keyboard focus was styled on the contact rows and nowhere else, so
+   tabbing through the rest of the site showed nothing at all. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 * {
@@ -60,7 +95,8 @@ a {
   color: var(--ink);
   border-bottom: 1px solid transparent;
   padding-bottom: 3px;
-  transition: all 0.3s cubic-bezier(0.2, 0, 0.8, 1);
+  transition: color 0.3s var(--soft), border-color 0.3s var(--soft),
+              opacity 0.3s var(--soft);
 }
 
 .nav-link:hover {
@@ -80,7 +116,8 @@ a {
   color: var(--ink);
   border-bottom: 1px solid transparent;
   padding-bottom: 3px;
-  transition: all 0.3s cubic-bezier(0.2, 0, 0.8, 1);
+  transition: color 0.3s var(--soft), border-color 0.3s var(--soft),
+              opacity 0.3s var(--soft);
 }
 
 .contact-btn:hover {
@@ -92,7 +129,7 @@ a {
   font-weight: 500;
   font-size: 17px;
   letter-spacing: -0.02em;
-  color: #FF2CBE;
+  color: var(--accent);
 }
 
 .home-btn {
@@ -100,7 +137,8 @@ a {
   font-weight: 500;
   border-bottom: 1px solid transparent;
   padding-bottom: 3px;
-  transition: all 0.3s cubic-bezier(0.2, 0, 0.8, 1);
+  transition: color 0.3s var(--soft), border-color 0.3s var(--soft),
+              opacity 0.3s var(--soft);
 }
 
 .home-btn:hover {
@@ -146,7 +184,7 @@ a {
   object-fit: contain;
   user-select: none;
   opacity: 0;
-  transition: opacity 0.2s cubic-bezier(0.2, 0, 0.8, 1);
+  transition: opacity 0.2s var(--soft);
 }
 
 .gallery-figure img.is-loaded {
@@ -195,7 +233,7 @@ a {
 }
 
 .tap-edge.flash {
-  animation: edge-flash 0.52s cubic-bezier(0.2, 0, 0.2, 1);
+  animation: edge-flash 0.52s var(--soft);
 }
 
 @keyframes edge-flash {
@@ -211,12 +249,12 @@ a {
 }
 
 .count-now.rolling {
-  animation: count-roll 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: count-roll 0.5s var(--settle);
 }
 
 @keyframes count-roll {
-  0%   { transform: translateY(8px); opacity: 0; color: #FF2CBE; }
-  50%  { color: #FF2CBE; }
+  0%   { transform: translateY(8px); opacity: 0; color: var(--accent); }
+  50%  { color: var(--accent); }
   100% { transform: none; opacity: 1; }
 }
 
@@ -258,7 +296,7 @@ a {
   pointer-events: none;
   opacity: 0;
   z-index: 30;
-  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.5s ease, transform 0.5s var(--settle);
 }
 
 .tap-hint.is-on {
@@ -292,7 +330,8 @@ a {
   /* In the flex row beside the photo, so they track its edge at any
      width instead of sitting out at the window edge. */
   flex: none;
-  transition: all 0.3s cubic-bezier(0.2, 0, 0.8, 1);
+  transition: color 0.3s var(--soft), border-color 0.3s var(--soft),
+              opacity 0.3s var(--soft);
   opacity: 0.7;
 }
 
@@ -332,8 +371,8 @@ a {
 /* The exception: on the way out the frame loop stops, so the last
    transform written can simply be transitioned to. */
 .watch-canvas.is-zooming {
-  transition: transform 0.5s cubic-bezier(0.5, 0, 0.9, 0.9),
-              opacity 0.5s cubic-bezier(0.6, 0, 1, 1);
+  transition: transform 0.5s var(--leave),
+              opacity 0.5s var(--leave);
 }
 
 .watch-cell {
@@ -355,7 +394,7 @@ a {
 }
 
 .watch-cell img {
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+  transition: transform 0.3s var(--soft);
 }
 
 .watch-cell:hover img {
@@ -393,7 +432,7 @@ a {
 
 /* Arriving from the honeycomb: the photo settles back out of the push. */
 .from-gallery .gallery-figure img {
-  animation: zoom-settle 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: zoom-settle 0.55s var(--settle);
 }
 
 @keyframes zoom-settle {
@@ -408,16 +447,16 @@ a {
 .is-zooming-out .contact-main {
   transform: scale(0.84);
   opacity: 0;
-  transition: transform 0.4s cubic-bezier(0.5, 0, 0.9, 0.9),
-              opacity 0.4s cubic-bezier(0.6, 0, 1, 1);
+  transition: transform 0.4s var(--leave),
+              opacity 0.4s var(--leave);
 }
 
 /* Leaving the grid for one photo is the opposite: push in. */
 .is-zooming-in .watch {
   transform: scale(1.4);
   opacity: 0;
-  transition: transform 0.4s cubic-bezier(0.5, 0, 0.9, 0.9),
-              opacity 0.4s cubic-bezier(0.6, 0, 1, 1);
+  transition: transform 0.4s var(--leave),
+              opacity 0.4s var(--leave);
 }
 
 /* ---------- contact page ---------- */
@@ -446,7 +485,7 @@ a {
   position: relative;
   padding: 30px 0;
   border-top: 1px solid var(--border);
-  transition: color 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+  transition: color 0.4s var(--soft);
 }
 
 .contact-row:last-child {
@@ -461,8 +500,8 @@ a {
   top: -1px;
   height: 1px;
   width: 0;
-  background: #FF2CBE;
-  transition: width 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--accent);
+  transition: width 0.55s var(--settle);
 }
 
 .contact-row:hover::after,
@@ -488,7 +527,7 @@ a {
   font-size: clamp(30px, 5.6vw, 58px);
   line-height: 1.05;
   letter-spacing: -0.03em;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s var(--settle);
 }
 
 /* A pink copy of the address sitting exactly over the black one,
@@ -501,8 +540,8 @@ a {
   width: 0;
   overflow: hidden;
   white-space: nowrap;
-  color: #FF2CBE;
-  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--accent);
+  transition: width 0.6s var(--settle);
 }
 
 .contact-row:hover .contact-value::after,
@@ -512,7 +551,7 @@ a {
 
 .contact-row:hover .contact-kind,
 .contact-row:focus-visible .contact-kind {
-  color: #FF2CBE;
+  color: var(--accent);
 }
 
 .contact-row:hover .contact-value,
@@ -524,10 +563,10 @@ a {
   justify-self: end;
   font-size: 26px;
   line-height: 1;
-  color: #FF2CBE;
+  color: var(--accent);
   opacity: 0;
   transform: translateX(-18px);
-  transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.45s ease, transform 0.55s var(--settle);
 }
 
 .contact-row:hover .contact-go,
@@ -647,11 +686,11 @@ a {
   }
 
   .gallery-figure.from-right {
-    animation: step-from-right 0.52s cubic-bezier(0.22, 1, 0.3, 1);
+    animation: step-from-right 0.52s var(--settle);
   }
 
   .gallery-figure.from-left {
-    animation: step-from-left 0.52s cubic-bezier(0.22, 1, 0.3, 1);
+    animation: step-from-left 0.52s var(--settle);
   }
 
   /* A plain word in the corner does not read as a control on a phone.
@@ -659,7 +698,7 @@ a {
   .nav-link {
     font-size: 12px;
     color: var(--ink);
-    border-bottom-color: #FF2CBE;
+    border-bottom-color: var(--accent);
     padding-bottom: 2px;
   }
 

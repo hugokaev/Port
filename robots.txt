@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# The full-resolution masters are served for the site's own use, not for
+# scraping; the pages themselves only ever load the smaller copies.
+Disallow: /images/
+Allow: /images/web/
+Allow: /images/thumb/
+
+Sitemap: https://hugokae.com/sitemap.xml
