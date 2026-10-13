@@ -52,7 +52,11 @@ body {
   margin: 0;
   background: #ffffff;
   color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+  /* The system stack resolved to San Francisco on Apple hardware and to
+     Arial or Roboto everywhere else, so the site read differently
+     depending on who opened it. Inter holds the same tight, neutral
+     grotesque on every device; the old stack stays as the fallback. */
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -199,8 +203,10 @@ a {
   gap: 18px;
 }
 
+/* Desktop had no sign that the photo was one of a set — the arrows
+   imply more, but not how many or where you are. Lining numerals keep
+   the figure from shifting as it counts up. */
 .gallery-count {
-  display: none;
   flex: none;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.08em;
@@ -676,10 +682,6 @@ a {
 
   /* With the arrows gone there is nothing to say the photo is one of
      many, so the count stands in for them. */
-  .gallery-count {
-    display: block;
-  }
-
   .tap-hint,
   .tap-edge {
     display: block;
