@@ -488,6 +488,34 @@ a {
   max-width: 760px;
 }
 
+/* The gap below carries the separation on its own; the first row's rule
+   then reads as the divider, so no new element is needed for one. */
+.contact-intro {
+  margin-bottom: 56px;
+}
+
+.contact-name {
+  margin: 0;
+  font-size: clamp(34px, 6.2vw, 64px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.contact-role {
+  margin: 20px 0 0;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.contact-base {
+  margin: 5px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
 /* The address and its mark share a row so the mark tracks the type's
    centre at any size, rather than being held at a fixed offset tuned to
    one of them. */
@@ -526,6 +554,9 @@ a {
   grid-column: 1 / -1;
   font-size: 11px;
   letter-spacing: 0.2em;
+  /* Matches the bar's own small labels, which were already set this way
+     — the lowercase here was the odd one out on the site. */
+  text-transform: uppercase;
   color: var(--faint);
   margin-bottom: 12px;
   transition: color 0.4s ease;
@@ -707,5 +738,13 @@ a {
      otherwise flatten the hierarchy to a single spacing on phones. */
   .contact-row--aside {
     padding-top: 34px;
+  }
+
+  .contact-intro {
+    margin-bottom: 40px;
+  }
+
+  .contact-role {
+    margin-top: 16px;
   }
 }
