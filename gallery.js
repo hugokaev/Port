@@ -14,7 +14,12 @@
   const GAP = 32;
   const JX = 13, JY = 6;
 
-  const thumb = (i) => "../" + PHOTOS[i].src.replace("images/web/", "images/thumb/");
+  // The cache tag already on src is a hash of the web-sized file, so
+  // rebuilding the thumbnails alone changes no URL and browsers keep
+  // serving the old ones. Bump this whenever they are regenerated.
+  const THUMBS = 2;
+  const thumb = (i) =>
+    "../" + PHOTOS[i].src.replace("images/web/", "images/thumb/") + "&t=" + THUMBS;
   const ratios = PHOTOS.map((p) => p.ar || 0.75);
 
   // Stable pseudo-random value in [0,1) for a cell. Deterministic, so
@@ -139,26 +144,27 @@
     const m = metrics();
     const CELL = m.CELL, pitch = m.pitch, row = m.row;
 
-    // Cells fade to nothing at `radius`, so there is no point building
-    // anything beyond that — this is what keeps an infinite grid cheap.
-    const radius = Math.min(innerWidth, innerHeight) * 0.52;
-    const reach = radius + pitch;
+    // Everything that can reach the window, plus a cell of margin so a
+    // photo is already built before it comes into view. The grid used to
+    // fade out on a radius, which drew it as a disc floating in the page
+    // with the corners left empty; it now runs to all four edges.
+    const reachX = innerWidth / 2 + pitch;
+    const reachY = innerHeight * 0.58 + row;
     const seen = new Set();
 
-    const rMin = Math.floor((-panY - reach) / row);
-    const rMax = Math.ceil((-panY + reach) / row);
+    const rMin = Math.floor((-panY - reachY) / row);
+    const rMax = Math.ceil((-panY + reachY) / row);
 
     for (let r = rMin; r <= rMax; r++) {
       const shift = noise(0, r, 5) * pitch;
-      const qMin = Math.floor((-panX - reach - shift) / pitch);
-      const qMax = Math.ceil((-panX + reach - shift) / pitch);
+      const qMin = Math.floor((-panX - reachX - shift) / pitch);
+      const qMax = Math.ceil((-panX + reachX - shift) / pitch);
 
       for (let q = qMin; q <= qMax; q++) {
         const p = cellPos(q, r, m);
         const x = p.x, y = p.y;
         const dx = x + panX, dy = y + panY;
-        const d = Math.hypot(dx, dy);
-        if (d > reach) continue;
+        if (Math.abs(dx) > reachX || Math.abs(dy) > reachY) continue;
 
         const key = q + "," + r;
         seen.add(key);
@@ -173,11 +179,6 @@
         it.el.style.height = h + "px";
         it.el.style.left = x - w / 2 + "px";
         it.el.style.top = y - h / 2 + "px";
-
-        const t = Math.min(1, d / radius);
-        it.el.style.transform = "scale(" + Math.max(0.15, 1 - 0.85 * Math.pow(t, 1.3)).toFixed(3) + ")";
-        it.el.style.opacity = Math.max(0, 1 - Math.pow(t, 1.5)).toFixed(3);
-        it.el.style.zIndex = Math.round((1 - t) * 100);
       }
     }
 

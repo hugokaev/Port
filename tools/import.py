@@ -38,7 +38,7 @@ VALUE = re.compile(r"Value\((\d+)\)(.+)\.webp$")
 SOURCES = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp", ".gif"}
 
 WEB_MAX, WEB_Q = 2400, 82
-THUMB_MAX, THUMB_Q = 400, 78
+THUMB_MAX, THUMB_Q = 650, 76
 MASTER_Q = 90
 
 

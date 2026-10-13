@@ -357,7 +357,7 @@ a {
 .watch {
   /* Read by both pages: the grid lays cells out at this size, and the
      photo page needs it to know where a photo shrinks back to. */
-  --watch-cell: 160px;
+  --watch-cell: 230px;
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -660,7 +660,7 @@ a {
   }
 
   .watch {
-    --watch-cell: 112px;
+    --watch-cell: 150px;
   }
 
   /* Sit a little above centre on a tall screen, which otherwise leaves
