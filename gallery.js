@@ -68,6 +68,10 @@
   const INTRO_MS = 750;
   const INTRO_FROM = 1.3;
   let introT = 0, introStart = 0;
+  // What the whole grid is currently scaled by. The entrance starts it
+  // oversized, and a cursor read off the window has to be divided by it
+  // to land on the right place in the grid.
+  let viewScale = 1;
 
   function makeCell(q, r, key) {
     const index = photoAt(q, r);
@@ -184,8 +188,6 @@
       }
     }
 
-    dome();
-
     for (const [key, it] of pool) {
       if (!seen.has(key)) {
         it.el.remove();
@@ -194,10 +196,14 @@
     }
 
     const eased = 1 - Math.pow(1 - introT, 3);
-    const introScale = INTRO_FROM + (1 - INTRO_FROM) * eased;
+    viewScale = INTRO_FROM + (1 - INTRO_FROM) * eased;
     canvas.style.transform =
-      "translate3d(" + panX + "px," + panY + "px,0) scale(" + introScale.toFixed(4) + ")";
+      "translate3d(" + panX + "px," + panY + "px,0) scale(" + viewScale.toFixed(4) + ")";
     canvas.style.opacity = eased.toFixed(3);
+
+    // Last, so that it reads this frame's pan rather than the one before
+    // it, and so that cells about to be dropped are not warped first.
+    dome();
   }
 
   // --- the warp ------------------------------------------------------
@@ -221,8 +227,15 @@
   // grid slides under a cursor that has not moved — whenever you pan or
   // scroll — so a position stored against the grid walks away from the
   // pointer until you nudge the mouse to correct it.
+  //
+  // It is never forgotten. A pointer that leaves the window, crosses a
+  // bar laid over the grid or is simply never reported leaves the sheet
+  // where it was rather than snapping flat, because the collapse and the
+  // spring back are far more distracting than a swell sitting still. The
+  // middle of the frame stands in until the pointer is first seen.
   let ptrX = null, ptrY = null;
   let domeX = 0, domeY = 0, peakCell = null;
+  let released = false;
 
   // How far the sheet has risen under one point, and so how much the
   // view spreads it away from the cursor. The bell is squared to keep
@@ -267,7 +280,7 @@
   function dome() {
     if (!canHover) return;
 
-    if (ptrX === null) {
+    if (released) {
       for (const it of pool.values()) {
         it.el.style.transform = "";
         it.el.style.filter = "";
@@ -277,18 +290,27 @@
       return;
     }
 
+    const frame = canvas.parentElement;
+    let px = ptrX, py = ptrY;
+    if (px === null) {
+      const f = frame.getBoundingClientRect();
+      px = f.left + f.width / 2;
+      py = f.top + f.height / 2;
+    }
+
     // Where the cursor falls on the grid right now. The canvas is a
     // zero-sized point at the grid's origin, so its own box gives that
-    // origin on screen — read every pass, since panning moves it.
+    // origin on screen — read every pass, since panning moves it — and
+    // the distance from it is divided by whatever the grid is scaled by.
     const o = canvas.getBoundingClientRect();
-    domeX = ptrX - o.left;
-    domeY = ptrY - o.top;
+    domeX = (px - o.left) / viewScale;
+    domeY = (py - o.top) / viewScale;
 
     // Reach is tied to the pitch so the swell covers roughly the ring of
     // neighbours whatever the cells are sized at.
     const pitch = metrics().pitch;
     const reach = pitch * 1.05;
-    const blurReach = pitch * 2;
+    const blurReach = pitch * 2.75;
 
     // The photo to name is the one the cursor is actually inside, not
     // the nearest centre: the cells are different shapes, so a tall
@@ -358,10 +380,6 @@
     dome();
   });
 
-  page.addEventListener("pointerleave", () => {
-    ptrX = ptrY = null;
-    dome();
-  });
 
   // Input nudges a target; the cluster eases towards it each frame, so it
   // drifts rather than snapping to the pointer.
@@ -541,7 +559,7 @@
     // rectangle rather than from a warped quad. Release the sheet first,
     // with this cell's transition suppressed so that what is measured is
     // what is on screen; the rest of the grid relaxes as it fades out.
-    ptrX = ptrY = null;
+    released = true;
     const held = it.el.style.transition;
     it.el.style.transition = "none";
     dome();
