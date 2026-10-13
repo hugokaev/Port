@@ -204,10 +204,8 @@
   // forward at that one point. Everything is driven off distance from
   // the cursor, so there is no special case for the hovered cell: it is
   // simply the one where that distance is zero.
-  const LIFT = 78;      // px towards the viewer at the peak
-  const GROW = 0.1;     // extra scale at the peak
+  const LIFT = 110;     // px towards the viewer at the peak
   const LEAN = 11;      // degrees a neighbour tilts to face the peak
-  const DRAW = 0.09;    // how far neighbours are drawn towards it
   const canHover = matchMedia("(hover: hover)").matches &&
                    !matchMedia("(prefers-reduced-motion: reduce)").matches;
   let domeX = null, domeY = null;
@@ -217,6 +215,7 @@
 
     if (domeX === null) {
       for (const it of pool.values()) it.el.style.transform = "";
+      canvas.parentElement.style.perspectiveOrigin = "";
       return;
     }
 
@@ -230,13 +229,16 @@
       // visibly pop in and out of the effect.
       const fall = 1 / (1 + (dx * dx + dy * dy) / (reach * reach));
 
+      // Depth and tilt only. Scaling each cell on its own, and drawing
+      // them inward, is what made them overlap: both the raised photo
+      // and its neighbours grew into the same gap while the gap itself
+      // was closing. Size is left to the perspective projection below,
+      // which enlarges a cell and moves it outward by the same factor —
+      // so the spacing opens as the surface rises instead of collapsing.
       it.el.style.transform =
-        "translate3d(" + (-dx * DRAW * fall).toFixed(2) + "px," +
-        (-dy * DRAW * fall).toFixed(2) + "px," +
-        (LIFT * fall).toFixed(2) + "px)" +
+        "translateZ(" + (LIFT * fall).toFixed(2) + "px)" +
         " rotateX(" + (-(dy / reach) * LEAN * fall).toFixed(2) + "deg)" +
-        " rotateY(" + ((dx / reach) * LEAN * fall).toFixed(2) + "deg)" +
-        " scale(" + (1 + GROW * fall).toFixed(4) + ")";
+        " rotateY(" + ((dx / reach) * LEAN * fall).toFixed(2) + "deg)";
     }
   }
 
@@ -247,6 +249,16 @@
     const o = canvas.getBoundingClientRect();
     domeX = e.clientX - o.left;
     domeY = e.clientY - o.top;
+
+    // Project from the cursor rather than from the middle of the frame.
+    // A raised cell is magnified away from the vanishing point, so with
+    // the vanishing point under the finger the photo you are pointing at
+    // grows in place while the rest spread outwards around it.
+    const frame = canvas.parentElement;
+    const fr = frame.getBoundingClientRect();
+    frame.style.perspectiveOrigin =
+      (e.clientX - fr.left).toFixed(1) + "px " + (e.clientY - fr.top).toFixed(1) + "px";
+
     dome();
   });
 
