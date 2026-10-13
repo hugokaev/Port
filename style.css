@@ -406,7 +406,16 @@ a {
   /* Lets the dome settle rather than snap from one pointer position to
      the next. Panning moves cells with left/top, not transform, so this
      never fights the frame loop. */
-  transition: transform 0.26s var(--soft);
+  transition: transform 0.26s var(--soft),
+              opacity 0.26s var(--soft),
+              box-shadow 0.26s var(--soft);
+}
+
+/* The one photo the cursor is on. Named by gallery.js rather than left
+   to :hover, so the cue lands on the same cell the lift is centred on
+   even while the grid is drifting under the pointer. */
+.watch-cell.is-peak {
+  box-shadow: 0 18px 44px -12px rgba(0, 0, 0, 0.45);
 }
 
 .watch-cell img {

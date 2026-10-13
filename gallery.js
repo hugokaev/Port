@@ -175,6 +175,8 @@
 
         it.x = x;
         it.y = y;
+        it.w = w;
+        it.h = h;
         it.el.style.width = w + "px";
         it.el.style.height = h + "px";
         it.el.style.left = x - w / 2 + "px";
@@ -205,29 +207,56 @@
   // the cursor, so there is no special case for the hovered cell: it is
   // simply the one where that distance is zero.
   const LIFT = 110;     // px towards the viewer at the peak
-  const LEAN = 11;      // degrees a neighbour tilts to face the peak
+  const LEAN = 7;       // degrees a neighbour tilts to face the peak
+  const DIM = 0.4;      // how far the surroundings fade back
   const canHover = matchMedia("(hover: hover)").matches &&
                    !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let domeX = null, domeY = null;
+  let domeX = null, domeY = null, peakCell = null;
 
   function dome() {
     if (!canHover) return;
 
     if (domeX === null) {
-      for (const it of pool.values()) it.el.style.transform = "";
+      for (const it of pool.values()) {
+        it.el.style.transform = "";
+        it.el.style.opacity = "";
+        it.el.classList.remove("is-peak");
+      }
+      peakCell = null;
       canvas.parentElement.style.perspectiveOrigin = "";
       return;
     }
 
     // Reach is tied to the pitch so the effect covers roughly the ring
     // of neighbours whatever the cells are sized at.
-    const reach = metrics().pitch * 1.35;
+    const pitch = metrics().pitch;
+    const reach = pitch * 1.1;
+
+    // The photo to name is the one the cursor is actually inside, not
+    // the nearest centre: the cells are different shapes, so a tall
+    // neighbour can be nearer the middle than the wide photo the cursor
+    // is really on. Nearest is kept only for the gaps between cells.
+    let peak = null, near = null, best = Infinity;
 
     for (const it of pool.values()) {
       const dx = it.x - domeX, dy = it.y - domeY;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < best) { best = d2; near = it; }
+      if (Math.abs(dx) <= it.w / 2 && Math.abs(dy) <= it.h / 2) peak = it;
+
       // Smooth and never quite zero, so there is no edge where cells
-      // visibly pop in and out of the effect.
-      const fall = 1 / (1 + (dx * dx + dy * dy) / (reach * reach));
+      // visibly pop in and out of the effect. Squaring narrows the
+      // peak: the photo under the cursor keeps the whole lift while its
+      // neighbours take only a quarter of it, so they settle instead of
+      // swinging about every time the cursor crosses the grid.
+      const close = 1 / (1 + d2 / (reach * reach));
+      const fall = close * close;
+
+      // The surroundings also fade back, on the wider curve so the
+      // falling-away is gradual. Depth alone is a weak cue at this
+      // shallow a perspective; losing contrast is what actually tells
+      // you which photo you are pointing at.
+      it.el.style.opacity = (1 - DIM * (1 - close)).toFixed(3);
 
       // Depth and tilt only. Scaling each cell on its own, and drawing
       // them inward, is what made them overlap: both the raised photo
@@ -239,6 +268,19 @@
         "translateZ(" + (LIFT * fall).toFixed(2) + "px)" +
         " rotateX(" + (-(dy / reach) * LEAN * fall).toFixed(2) + "deg)" +
         " rotateY(" + ((dx / reach) * LEAN * fall).toFixed(2) + "deg)";
+    }
+
+    // One cell is named outright. Everything above is a smooth field, so
+    // nothing in it can carry a cue that only belongs to the photo being
+    // pointed at — the shadow that lifts it clear of the sheet.
+    // In the gaps between photos, stay with the nearest one rather than
+    // dropping the cue: letting it blink out as the cursor crosses a
+    // seam is more distracting than being a few pixels generous.
+    if (!peak && best <= (pitch * 0.75) * (pitch * 0.75)) peak = near;
+    if (peak !== peakCell) {
+      if (peakCell) peakCell.el.classList.remove("is-peak");
+      if (peak) peak.el.classList.add("is-peak");
+      peakCell = peak;
     }
   }
 
