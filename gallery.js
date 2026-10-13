@@ -335,21 +335,29 @@
       // blank line would not predict.
       '<figure class="gallery-figure"><img alt=""><figcaption></figcaption></figure>' +
       '<button class="nav-arrow nav-next">›</button>' +
-      "</main>" +
-      // The footer is empty but its padding shortens the photo area, and
-      // leaving it out drops the landing point ~32px too low.
-      '<footer class="site-footer"><p>&nbsp;</p></footer>';
+      "</main>";
 
-    // An oversized box of the right shape is shrunk by max-width and
-    // max-height to exactly where the real photo lands, so the file's
-    // true pixel dimensions are never needed.
     const probe = host.querySelector(".gallery-figure img");
-    probe.style.aspectRatio = String(ratio);
-    probe.style.width = "4000px";
-    probe.style.height = "auto";
     host.querySelector("figcaption").textContent = caption || "";
-
+    probe.style.height = "auto";
     document.body.appendChild(host);
+
+    // Read the two limits separately rather than handing the browser an
+    // oversized box of the right shape and trusting it to fit. Once a
+    // width is definite, clamping the height does not pull the width
+    // back in, so a photo constrained by both came out stretched.
+    probe.style.aspectRatio = "100";          // absurdly wide: width binds
+    probe.style.width = "20000px";
+    const availW = probe.getBoundingClientRect().width;
+    probe.style.aspectRatio = "0.005";        // absurdly tall: height binds
+    const availH = probe.getBoundingClientRect().height;
+
+    // Fit the real shape inside both, the way the photo page does.
+    const w = Math.min(availW, availH * ratio);
+    probe.style.aspectRatio = "auto";
+    probe.style.width = w + "px";
+    probe.style.height = w / ratio + "px";
+
     const rect = probe.getBoundingClientRect();
     host.remove();
     return rect;

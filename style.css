@@ -159,7 +159,11 @@ a {
   justify-content: center;
   gap: 28px;
   position: relative;
-  padding: 100px 60px 20px;
+  /* No vertical padding: the photo is meant to run level with the bar's
+     text, so it centres against the window rather than against the space
+     below the bar. The old 100/20 split only looked balanced because an
+     empty footer was silently holding up the bottom. */
+  padding: 0 60px;
   min-height: 0;
   z-index: 1;
   overflow: visible;
@@ -182,7 +186,10 @@ a {
 .gallery-figure img {
   display: block;
   max-width: 100%;
-  max-height: 90vh;
+  /* Leaves 24px above and below the whole figure, caption included. A
+     flat 90vh measured the photo alone and let the caption run past the
+     bottom of the window. */
+  max-height: calc(100vh - 84px);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -604,22 +611,6 @@ a {
   font-size: 19px;
 }
 
-/* ---------- footer ---------- */
-
-.site-footer {
-  padding: 32px 40px;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.site-footer p {
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--faint);
-  display: none;
-}
-
 /* ---------- responsive ---------- */
 
 @media (max-width: 640px) {
@@ -716,9 +707,5 @@ a {
      otherwise flatten the hierarchy to a single spacing on phones. */
   .contact-row--aside {
     padding-top: 34px;
-  }
-
-  .site-footer {
-    padding: 20px;
   }
 }
