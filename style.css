@@ -440,7 +440,9 @@ a {
 .is-leaving .watch,
 .is-leaving .gallery {
   opacity: 0;
-  transition: opacity 0.28s ease;
+  /* Slow enough to let the grid's push outwards be seen behind the photo
+     that is leaving, and still clear before the handover. */
+  transition: opacity 0.46s var(--leave);
 }
 
 /* The photo in flight between the grid and the photo page. It is the

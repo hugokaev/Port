@@ -235,7 +235,15 @@
   // middle of the frame stands in until the pointer is first seen.
   let ptrX = null, ptrY = null;
   let domeX = 0, domeY = 0, peakCell = null;
-  let released = false;
+  let frozen = false;
+
+  // The grid arrives flat and comes into shape over half a second. A
+  // photo flying in from the slideshow lands on a rectangle, and if the
+  // sheet were already swollen that rectangle would not be the shape of
+  // the cell it landed in — the handover would end with a jump. Growing
+  // in also means the blur arrives as a fade rather than all at once.
+  const WARM_HOLD = 120, WARM_MS = 620;
+  let warm = 0, warmStart = 0;
 
   // How far the sheet has risen under one point, and so how much the
   // view spreads it away from the cursor. The bell is squared to keep
@@ -243,7 +251,7 @@
   function spread(x, y, reach) {
     const dx = x - domeX, dy = y - domeY;
     const g = 1 / (1 + (dx * dx + dy * dy) / (reach * reach));
-    return DEPTH / (DEPTH - LIFT * g * g);
+    return DEPTH / (DEPTH - LIFT * warm * g * g);
   }
 
   // The transform that lands a photo's own box on four arbitrary corners.
@@ -280,15 +288,10 @@
   function dome() {
     if (!canHover) return;
 
-    if (released) {
-      for (const it of pool.values()) {
-        it.el.style.transform = "";
-        it.el.style.filter = "";
-        it.el.classList.remove("is-peak");
-      }
-      peakCell = null;
-      return;
-    }
+    // Frozen while a photo flies out: the grid keeps the shape it had
+    // when it was clicked and fades out in it, rather than snapping flat
+    // under the photo that is leaving.
+    if (frozen) return;
 
     const frame = canvas.parentElement;
     let px = ptrX, py = ptrY;
@@ -331,7 +334,7 @@
       // re-rendered whenever its radius changes, and the eye cannot tell
       // 2.5px from 2.6px anyway.
       const soft = d2 / (d2 + blurReach * blurReach);
-      const px = Math.round(BLUR * soft * 2) / 2;
+      const px = Math.round(BLUR * warm * soft * 2) / 2;
       it.el.style.filter = px > 0.25 ? "blur(" + px + "px)" : "";
 
       // Each corner is moved away from the cursor by however far the
@@ -555,23 +558,30 @@
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
 
     const thumb = it.el.querySelector("img");
-    // The photo flies as a rectangle, so it has to leave from its own
-    // rectangle rather than from a warped quad. Release the sheet first,
-    // with this cell's transition suppressed so that what is measured is
-    // what is on screen; the rest of the grid relaxes as it fades out.
-    released = true;
-    const held = it.el.style.transition;
-    it.el.style.transition = "none";
-    dome();
-    thumb.getBoundingClientRect();
-    it.el.style.transition = held;
 
     // The listed ratio is the full file's, which is what the photo page
     // will lay out from — the thumbnail's own can differ by rounding.
     const ratio = ratios[it.index];
-    const from = thumb.getBoundingClientRect();
     const to = landingRect(ratio, PHOTOS[it.index].title);
     const full = "../" + PHOTOS[it.index].src;
+
+    // Where the photo is on screen this instant: the four corners of its
+    // warped quad, read from the style the browser is actually painting
+    // so a warp caught mid-ease is carried over as it looks. Starting
+    // the flight from the rectangle the photo would be if the sheet were
+    // flat is what used to make the click snap.
+    const warpNow = new DOMMatrix(getComputedStyle(it.el).transform);
+    const o = canvas.getBoundingClientRect();
+    const L = parseFloat(it.el.style.left), T = parseFloat(it.el.style.top);
+    const corners = [[0, 0], [it.w, 0], [it.w, it.h], [0, it.h]];
+    const q = new Array(8);
+    corners.forEach(([u, v], k) => {
+      const p = warpNow.transformPoint(new DOMPoint(u, v, 0, 1));
+      q[k * 2] = o.left + (L + p.x / p.w) * viewScale - to.left;
+      q[k * 2 + 1] = o.top + (T + p.y / p.w) * viewScale - to.top;
+    });
+
+    frozen = true;
 
     // Fly the photo itself. It starts as the thumbnail, which is already
     // decoded, and upgrades to the full file the moment that arrives —
@@ -584,9 +594,10 @@
     flight.style.width = to.width + "px";
     flight.style.height = to.height + "px";
     flight.style.transformOrigin = "top left";
-    flight.style.transform =
-      "translate(" + (from.left - to.left) + "px," + (from.top - to.top) + "px) " +
-      "scale(" + from.width / to.width + "," + from.height / to.height + ")";
+    // Same transform the grid uses: the flight's own box laid onto those
+    // four corners, so it begins as the photo you were looking at and
+    // unbends into a rectangle as it travels.
+    flight.style.transform = quadTransform(to.width, to.height, q);
     document.body.appendChild(flight);
 
     const upgrade = new Image();
@@ -597,6 +608,16 @@
     upgrade.src = full;
 
     document.body.classList.add("is-leaving");
+
+    // The grid opens outwards from the photo you chose as that photo
+    // comes forward, so the two movements read as one rather than as a
+    // picture leaving a wall that blinks out behind it.
+    canvas.classList.add("is-zooming");
+    getComputedStyle(canvas).transform;
+    canvas.style.transform =
+      "translate3d(" + panX + "px," + panY + "px,0) scale(" + viewScale.toFixed(4) + ") " +
+      "translate(" + it.x + "px," + it.y + "px) scale(1.18) " +
+      "translate(" + (-it.x) + "px," + (-it.y) + "px)";
 
     try {
       sessionStorage.setItem("hk:hero", JSON.stringify({ i: it.index, ar: ratio }));
@@ -641,6 +662,17 @@
   }
 
   render();
+
+  // Grow the swell in. The frame loop only runs while something is
+  // moving, so the ramp drives itself.
+  requestAnimationFrame(function warmUp(ts) {
+    if (!warmStart) warmStart = ts;
+    const t = Math.min(1, Math.max(0, (ts - warmStart - WARM_HOLD) / WARM_MS));
+    warm = 1 - Math.pow(1 - t, 3);
+    dome();
+    if (t < 1) requestAnimationFrame(warmUp);
+  });
+
   if (introT < 1) {
     requestAnimationFrame(function intro(ts) {
       if (!introStart) introStart = ts;
