@@ -98,7 +98,18 @@
   // upright, so pitching on height alone would leave the field far
   // emptier than it needs to be — while still adapting if a landscape
   // shot is ever added.
+  // Both of these were read on every pass of every frame: the cell size
+  // through getComputedStyle, which makes the browser resolve style, and
+  // the frame's box, which makes it lay out. Neither changes unless the
+  // window does.
+  let metricsCache = null, frameCache = null;
+
+  function frameBox() {
+    return frameCache || (frameCache = canvas.parentElement.getBoundingClientRect());
+  }
+
   function metrics() {
+    if (metricsCache) return metricsCache;
     const CELL = cellSize();
     let maxW = 0, maxH = 0;
     for (const r of ratios) {
@@ -108,7 +119,8 @@
     const pitch = maxW + GAP;
     // Rows sit closer than a true hexagon, but leave room for a full
     // cell height plus the vertical wander, so photos cannot touch.
-    return { CELL, pitch, row: Math.max(maxH + 2 * JY + 8, pitch * 0.866) };
+    metricsCache = { CELL, pitch, row: Math.max(maxH + 2 * JY + 8, pitch * 0.866) };
+    return metricsCache;
   }
 
   // Each row slides sideways by an arbitrary fraction of the pitch. Rows
@@ -218,9 +230,18 @@
   // field over the whole sheet, read separately at every corner of every
   // photo, so two photos meeting at a seam read the same height there
   // and distort together instead of sliding past one another.
-  const LIFT = 400;     // px the sheet rises at the cursor
+  const LIFT = 340;     // px the sheet rises at the cursor
   const DEPTH = 1000;   // viewing distance the risen sheet is seen through
-  const BLUR = 5;       // px the far edges of the sheet are thrown out of focus
+  const BLUR = 3;       // px the far edges of the sheet are thrown out of focus
+  // Ceilings, so that neither effect can run away from the look of the
+  // page however the numbers above are tuned. Nothing may be drawn more
+  // than a quarter larger than it is, and nothing softer than BLUR.
+  const MAX_SPREAD = 1.25;
+  // How quickly the warp catches up with the cursor, per frame. This is
+  // the smoothing that used to be a CSS transition on every cell — which
+  // meant every one of them restarted its own animation on every frame
+  // the grid moved, which is what made panning stutter.
+  const AIM = 0.3;
   const canHover = matchMedia("(hover: hover)").matches &&
                    !matchMedia("(prefers-reduced-motion: reduce)").matches;
   // The cursor is kept in window coordinates, not grid coordinates. The
@@ -233,7 +254,8 @@
   // where it was rather than snapping flat, because the collapse and the
   // spring back are far more distracting than a swell sitting still. The
   // middle of the frame stands in until the pointer is first seen.
-  let ptrX = null, ptrY = null;
+  let ptrX = null, ptrY = null;        // where the cursor actually is
+  let aimX = null, aimY = null;        // where the warp has caught up to
   let domeX = 0, domeY = 0, peakCell = null;
   let frozen = false;
 
@@ -251,7 +273,7 @@
   function spread(x, y, reach) {
     const dx = x - domeX, dy = y - domeY;
     const g = 1 / (1 + (dx * dx + dy * dy) / (reach * reach));
-    return DEPTH / (DEPTH - LIFT * warm * g * g);
+    return Math.min(MAX_SPREAD, DEPTH / (DEPTH - LIFT * warm * g * g));
   }
 
   // The transform that lands a photo's own box on four arbitrary corners.
@@ -285,6 +307,32 @@
       ") scale(" + 1 / w + "," + 1 / h + ")";
   }
 
+  // The middle of the frame stands in until the pointer is first seen.
+  function aim() {
+    if (aimX === null) {
+      const f = frameBox();
+      return { x: f.left + f.width / 2, y: f.top + f.height / 2 };
+    }
+    return { x: aimX, y: aimY };
+  }
+
+  // Ease the warp towards the cursor by a fixed share of the gap each
+  // frame. Done here rather than by transitioning every cell, so one
+  // number moves instead of forty animations being restarted.
+  function settleAim() {
+    if (ptrX === null) return true;
+    if (aimX === null) { aimX = ptrX; aimY = ptrY; return true; }
+    const dx = ptrX - aimX, dy = ptrY - aimY;
+    if (Math.abs(dx) < 0.4 && Math.abs(dy) < 0.4) {
+      aimX = ptrX;
+      aimY = ptrY;
+      return true;
+    }
+    aimX += dx * AIM;
+    aimY += dy * AIM;
+    return false;
+  }
+
   function dome() {
     if (!canHover) return;
 
@@ -293,21 +341,13 @@
     // under the photo that is leaving.
     if (frozen) return;
 
-    const frame = canvas.parentElement;
-    let px = ptrX, py = ptrY;
-    if (px === null) {
-      const f = frame.getBoundingClientRect();
-      px = f.left + f.width / 2;
-      py = f.top + f.height / 2;
-    }
-
-    // Where the cursor falls on the grid right now. The canvas is a
-    // zero-sized point at the grid's origin, so its own box gives that
-    // origin on screen — read every pass, since panning moves it — and
+    // Where the warp's centre falls on the grid right now. The canvas
+    // sits at the middle of the frame and is then panned, so its origin
+    // on screen is arithmetic rather than another box to measure, and
     // the distance from it is divided by whatever the grid is scaled by.
-    const o = canvas.getBoundingClientRect();
-    domeX = (px - o.left) / viewScale;
-    domeY = (py - o.top) / viewScale;
+    const f = frameBox();
+    domeX = (aim().x - (f.left + f.width / 2 + panX)) / viewScale;
+    domeY = (aim().y - (f.top + f.height / 2 + panY)) / viewScale;
 
     // Reach is tied to the pitch so the swell covers roughly the ring of
     // neighbours whatever the cells are sized at.
@@ -334,8 +374,12 @@
       // re-rendered whenever its radius changes, and the eye cannot tell
       // 2.5px from 2.6px anyway.
       const soft = d2 / (d2 + blurReach * blurReach);
-      const px = Math.round(BLUR * warm * soft * 2) / 2;
-      it.el.style.filter = px > 0.25 ? "blur(" + px + "px)" : "";
+      const px = Math.min(BLUR, Math.round(BLUR * warm * soft * 2) / 2);
+      const fx = px > 0.25 ? "blur(" + px + "px)" : "";
+      if (fx !== it.fx) {
+        it.fx = fx;
+        it.el.style.filter = fx;
+      }
 
       // Each corner is moved away from the cursor by however far the
       // sheet has risen beneath that corner. A corner facing the cursor
@@ -350,7 +394,11 @@
         q[k * 2] = domeX + (cx[k] - domeX) * s - L;
         q[k * 2 + 1] = domeY + (cy[k] - domeY) * s - T;
       }
-      it.el.style.transform = quadTransform(it.w, it.h, q);
+      const tf = quadTransform(it.w, it.h, q);
+      if (tf !== it.tf) {
+        it.tf = tf;
+        it.el.style.transform = tf;
+      }
     }
 
     // One cell is named outright. The warp is a smooth field, so nothing
@@ -361,7 +409,10 @@
     // seam is more distracting than being a few pixels generous.
     if (!peak && best <= (pitch * 0.75) * (pitch * 0.75)) peak = near;
     // Whatever the falloff says, the photo being pointed at is in focus.
-    if (peak) peak.el.style.filter = "";
+    if (peak && peak.fx) {
+      peak.fx = "";
+      peak.el.style.filter = "";
+    }
     if (peak !== peakCell) {
       if (peakCell) peakCell.el.classList.remove("is-peak");
       if (peak) peak.el.classList.add("is-peak");
@@ -380,7 +431,10 @@
     if (!canHover || e.pointerType === "touch") return;
     ptrX = e.clientX;
     ptrY = e.clientY;
-    dome();
+    // Note it and ask for a frame. Warping here as well as in the frame
+    // loop meant doing the whole grid twice for every move the mouse
+    // made, which is work the screen could never show.
+    glide();
   });
 
 
@@ -403,9 +457,23 @@
   let vx = 0, vy = 0, coasting = false, touchDrag = false;
   const trail = [];
 
+  // Grow the swell in from nothing. Folded into the one frame loop with
+  // everything else, so the page never has two loops running at once.
+  function advanceWarm(ts) {
+    if (warm >= 1) return true;
+    if (!warmStart) warmStart = ts;
+    const t = Math.min(1, Math.max(0, (ts - warmStart - WARM_HOLD) / WARM_MS));
+    warm = 1 - Math.pow(1 - t, 3);
+    return t >= 1;
+  }
+
+  // The single loop. Anything that wants the grid redrawn — a drag, a
+  // flick, the cursor moving, the swell growing in — calls this, and it
+  // runs until all of them have settled and then stops asking for
+  // frames.
   function glide() {
     if (raf || zooming) return;
-    const step = () => {
+    const step = (ts) => {
       if (coasting) {
         targetX += vx;
         targetY += vy;
@@ -414,17 +482,21 @@
         if (Math.hypot(vx, vy) < 0.15) coasting = false;
       }
       const dx = targetX - panX, dy = targetY - panY;
-      if (!coasting && Math.abs(dx) < 0.25 && Math.abs(dy) < 0.25) {
+      const panDone = !coasting && Math.abs(dx) < 0.25 && Math.abs(dy) < 0.25;
+      if (panDone) {
         panX = targetX;
         panY = targetY;
-        raf = 0;
-        render();
-        return;
+      } else {
+        panX += dx * EASE;
+        panY += dy * EASE;
       }
-      panX += dx * EASE;
-      panY += dy * EASE;
+
+      const warmDone = advanceWarm(ts);
+      const aimDone = settleAim();
+
       render();
-      raf = requestAnimationFrame(step);
+
+      raf = (panDone && warmDone && aimDone) ? 0 : requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
   }
@@ -505,7 +577,10 @@
     panBy(-e.deltaX * WHEEL, -e.deltaY * WHEEL);
   }, { passive: false });
 
-  addEventListener("resize", render);
+  addEventListener("resize", () => {
+    metricsCache = frameCache = null;
+    render();
+  });
 
   // --- opening a photo ----------------------------------------------
   // Where this photo will sit on the photo page. Measured from a hidden
@@ -616,20 +691,28 @@
     getComputedStyle(canvas).transform;
     canvas.style.transform =
       "translate3d(" + panX + "px," + panY + "px,0) scale(" + viewScale.toFixed(4) + ") " +
-      "translate(" + it.x + "px," + it.y + "px) scale(1.18) " +
+      "translate(" + it.x + "px," + it.y + "px) scale(1.08) " +
       "translate(" + (-it.x) + "px," + (-it.y) + "px)";
 
     try {
       sessionStorage.setItem("hk:hero", JSON.stringify({ i: it.index, ar: ratio }));
     } catch (e) { /* private browsing */ }
 
-    // Commit the starting transform as its own style before changing it.
-    // Without this flush the browser coalesces both values into one
-    // change and the photo jumps to its destination with no animation.
-    getComputedStyle(flight).transform;
-
-    flight.style.transition = "transform 0.52s cubic-bezier(0.22, 1, 0.36, 1)";
-    flight.style.transform = "none";
+    // Walk the four corners from where the photo is to the rectangle it
+    // is landing on, fitting the transform at each step along the way.
+    // The browser is never asked to find its own path between two
+    // projective matrices: to do that it takes them apart into pieces,
+    // and with perspective among those pieces the path it picks can
+    // swing. Stepping the corners keeps the photo a photo the whole way.
+    const land = [0, 0, to.width, 0, to.width, to.height, 0, to.height];
+    const steps = [];
+    for (let s = 0; s <= 16; s++) {
+      const t = 1 - Math.pow(1 - s / 16, 4);
+      const qq = new Array(8);
+      for (let k = 0; k < 8; k++) qq[k] = q[k] + (land[k] - q[k]) * t;
+      steps.push({ transform: quadTransform(to.width, to.height, qq) });
+    }
+    flight.animate(steps, { duration: 520, easing: "linear", fill: "forwards" });
 
     // Hand over once the flight has landed AND the full file is decoded,
     // otherwise the photo page can open on an empty frame while it
@@ -662,16 +745,7 @@
   }
 
   render();
-
-  // Grow the swell in. The frame loop only runs while something is
-  // moving, so the ramp drives itself.
-  requestAnimationFrame(function warmUp(ts) {
-    if (!warmStart) warmStart = ts;
-    const t = Math.min(1, Math.max(0, (ts - warmStart - WARM_HOLD) / WARM_MS));
-    warm = 1 - Math.pow(1 - t, 3);
-    dome();
-    if (t < 1) requestAnimationFrame(warmUp);
-  });
+  glide();
 
   if (introT < 1) {
     requestAnimationFrame(function intro(ts) {

@@ -409,13 +409,12 @@ a {
   /* The warp maps this box onto four moved corners, so the matrix is
      written from the top-left rather than the middle. */
   transform-origin: 0 0;
-  /* Lets the warp settle rather than snap from one pointer position to
-     the next. Panning moves cells with left/top, not transform, so this
-     never fights the frame loop. Shorter than the fade: the sheet should
-     feel like it is being pulled by the cursor, not catching up with it. */
-  transition: transform 0.18s var(--soft),
-              filter 0.26s var(--soft),
-              box-shadow 0.26s var(--soft);
+  /* Only the shadow. The warp and the blur are written fresh every frame
+     by gallery.js, and transitioning a property that is rewritten that
+     often means every cell restarts an animation on every frame the grid
+     moves — which is what made panning stutter. The settling they used
+     to give is now done once, on the cursor, in script. */
+  transition: box-shadow 0.26s var(--soft);
 }
 
 /* The one photo the cursor is on. Named by gallery.js rather than left
@@ -442,7 +441,7 @@ a {
   opacity: 0;
   /* Slow enough to let the grid's push outwards be seen behind the photo
      that is leaving, and still clear before the handover. */
-  transition: opacity 0.46s var(--leave);
+  transition: opacity 0.4s var(--leave);
 }
 
 /* The photo in flight between the grid and the photo page. It is the
