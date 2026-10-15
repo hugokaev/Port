@@ -185,9 +185,12 @@ a {
 
 .gallery-figure img {
   display: block;
-  /* Clicking the photo pulls back into the grid, so say so. Phones use
-     the two halves of the screen to step through photos instead. */
-  cursor: zoom-out;
+  /* Clicking the photo pulls back into the grid, so it needs a cursor
+     that says it can be clicked — but the plain hand rather than a
+     magnifying glass, which promises a closer look at the picture and
+     then does the opposite. Phones use the two halves of the screen to
+     step through photos instead. */
+  cursor: pointer;
   max-width: 100%;
   /* Leaves 24px above and below the whole figure, caption included. A
      flat 90vh measured the photo alone and let the caption run past the
