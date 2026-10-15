@@ -311,3 +311,85 @@ PHOTOS.sort((a, b) => {
     });
   });
 })();
+
+// Draw the cursor rather than letting the system draw it: a ring that
+// follows a step behind the hand, and a dot that does not, so clicking
+// still lands exactly where it looks like it will. Over anything that
+// can be clicked the ring opens and the dot shrinks into it.
+//
+// Only on a machine with a real pointer. A touchscreen has no cursor to
+// replace, and if this never runs the native one is never hidden — the
+// class that hides it is added from here.
+(function () {
+  if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+  const CLICKABLE = 'a, button, [role="button"], input, textarea, select, summary, ' +
+                    '.watch-cell, #galleryImage';
+  // The grid frame is draggable rather than clickable, so it keeps the
+  // plain mark: everything inside it that opens a photo is a button and
+  // is caught above.
+  const root = document.documentElement;
+  const slow = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const EASE = slow ? 1 : 0.22;
+
+  const ring = document.createElement("div");
+  ring.className = "cursor-ring";
+  ring.setAttribute("aria-hidden", "true");
+  ring.appendChild(document.createElement("i"));
+
+  const dot = document.createElement("div");
+  dot.className = "cursor-dot";
+  dot.setAttribute("aria-hidden", "true");
+  dot.appendChild(document.createElement("i"));
+
+  document.body.append(ring, dot);
+
+  let px = innerWidth / 2, py = innerHeight / 2;   // the pointer
+  let rx = px, ry = py;                            // the ring, trailing
+  let raf = 0;
+
+  function frame() {
+    rx += (px - rx) * EASE;
+    ry += (py - ry) * EASE;
+    const caught = Math.abs(px - rx) < 0.3 && Math.abs(py - ry) < 0.3;
+    if (caught) { rx = px; ry = py; }
+    ring.style.transform = "translate3d(" + rx.toFixed(1) + "px," + ry.toFixed(1) + "px,0)";
+    dot.style.transform = "translate3d(" + px + "px," + py + "px,0)";
+    // Stop asking for frames the moment the ring has caught up, so an
+    // idle page is not holding the compositor awake.
+    raf = caught ? 0 : requestAnimationFrame(frame);
+  }
+
+  function wake() {
+    if (!raf) raf = requestAnimationFrame(frame);
+  }
+
+  addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch") return;
+    px = e.clientX;
+    py = e.clientY;
+    if (!root.classList.contains("cursor-on")) {
+      rx = px;
+      ry = py;
+      root.classList.add("cursor-on");
+    }
+    const hit = e.target instanceof Element ? e.target : null;
+    root.classList.toggle("cursor-over", !!(hit && hit.closest(CLICKABLE)));
+    wake();
+  }, { passive: true });
+
+  addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "touch") root.classList.add("cursor-down");
+  }, { passive: true });
+
+  addEventListener("pointerup", () => root.classList.remove("cursor-down"), { passive: true });
+
+  // Gone from the window: take the drawn cursor away with it, or it
+  // would sit frozen at the edge while the real one is elsewhere.
+  root.addEventListener("pointerleave", () => root.classList.remove("cursor-on", "cursor-over", "cursor-down"));
+
+  // A touch anywhere means this is not a mouse after all.
+  addEventListener("touchstart", () => {
+    root.classList.remove("cursor-on", "cursor-over", "cursor-down");
+  }, { passive: true });
+})();

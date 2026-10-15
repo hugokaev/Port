@@ -492,6 +492,99 @@ a {
               opacity 0.4s var(--leave);
 }
 
+/* ---------- the cursor ---------- */
+/* A ring that follows a step behind the hand and a dot that does not,
+   so the pointer still lands exactly where it looks like it does. Both
+   are drawn in difference blending: white over a white page reads as
+   black, white over a dark photo reads as white, so neither can be lost
+   against a picture. Added by script.js, and only on a machine with a
+   real pointer — a touchscreen keeps nothing, and the native cursor
+   comes back the moment the script does not run. */
+.cursor-ring,
+.cursor-dot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 200;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.2s var(--soft);
+}
+
+.cursor-on .cursor-ring,
+.cursor-on .cursor-dot {
+  opacity: 1;
+}
+
+/* The position is written every frame; the state is a transition on the
+   inner mark, so the two never animate against each other. */
+.cursor-ring i {
+  position: absolute;
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  transform: scale(1);
+  transition: transform 0.26s var(--soft), border-color 0.26s var(--soft);
+}
+
+.cursor-dot i {
+  position: absolute;
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: #fff;
+  transform: scale(1);
+  transition: transform 0.26s var(--soft);
+}
+
+/* Over something that can be clicked: the ring opens out and the dot
+   steps back, so the two states are told apart by shape rather than by
+   a change of colour that a photograph could swallow. */
+.cursor-over .cursor-ring i {
+  transform: scale(1.85);
+}
+
+.cursor-over .cursor-dot i {
+  transform: scale(0.35);
+}
+
+/* Pressed: the ring closes on the dot. */
+.cursor-down .cursor-ring i {
+  transform: scale(0.72);
+}
+
+/* Hide the native pointer only where the drawn one is live, and only on
+   the things that ask for a cursor of their own — nothing is blanket
+   overridden, so a control added later keeps its own. */
+.cursor-on,
+.cursor-on body,
+.cursor-on a,
+.cursor-on button,
+.cursor-on .watch,
+.cursor-on .watch:active,
+.cursor-on .watch-cell,
+.cursor-on .nav-link.is-active,
+.cursor-on .nav-arrow,
+.cursor-on .gallery-figure img {
+  cursor: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-ring i,
+  .cursor-dot i {
+    transition: none;
+  }
+}
+
 /* ---------- contact page ---------- */
 
 .contact-main {
