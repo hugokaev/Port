@@ -705,11 +705,11 @@ a {
   .contact-row:hover .contact-go { opacity: 0; }
 }
 
-/* Instagram is the lesser route: set smaller and given more air above
-   it, so the booking address reads as the way in without the second
-   entry looking like an afterthought. */
+/* Instagram is the lesser route: set smaller, and tucked up close under
+   the booking address rather than floated off on its own, so the two
+   read as one pair with a clear first line. */
 .contact-row--aside {
-  padding-top: 40px;   /* 45px of real space: half again above the rest */
+  padding-top: 10px;   /* 15px of real space above the label */
   /* Its address is set smaller, so it hangs less below its line box and
      needs a little less padding to leave the same 30px below the ink. */
   padding-bottom: 31px;
@@ -822,7 +822,7 @@ a {
   /* Restated because the rule above resets the shorthand, which would
      otherwise flatten the hierarchy to a single spacing on phones. */
   .contact-row--aside {
-    padding-top: 29px;
+    padding-top: 8px;
   }
 
   .contact-intro {
