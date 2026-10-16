@@ -612,6 +612,31 @@ a {
   color: var(--muted);
 }
 
+/* Set off from the two lines above it by space alone, and headed with
+   the same small label the addresses use, so the left column reads as
+   its own short list rather than as a paragraph that kept going. */
+.contact-hours {
+  margin-top: clamp(30px, 3.4vw, 46px);
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.contact-when {
+  margin: 0;
+  font-size: clamp(15px, 1.5vw, 19px);
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+
+.contact-when--quiet {
+  margin-top: 6px;
+  font-size: clamp(13px, 1.15vw, 15px);
+  line-height: 1.5;
+  letter-spacing: 0.015em;
+  color: var(--muted);
+}
+
 /* The address and its mark share a row so the mark tracks the type's
    centre at any size, rather than being held at a fixed offset tuned to
    one of them. */
