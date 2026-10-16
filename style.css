@@ -577,7 +577,7 @@ a {
   flex: 1;
   display: flex;
   align-items: center;
-  padding: clamp(104px, 15vh, 180px) clamp(24px, 5vw, 72px) clamp(52px, 9vh, 104px);
+  padding: clamp(104px, 15vh, 180px) clamp(24px, 5.5vw, 96px) clamp(52px, 9vh, 104px);
   position: relative;
 }
 
@@ -595,7 +595,11 @@ a {
 }
 
 .contact-role {
-  margin: clamp(14px, 1.6vw, 22px) 0 0;
+  /* The name's line box is cut inside its own letters at this leading,
+     so its descenders hang below the box this margin is measured from —
+     about 10px of it at full size. Hence a margin that looks too large
+     and reads as 16px. */
+  margin: clamp(18px, 2vw, 28px) 0 0;
   font-size: clamp(16px, 1.75vw, 23px);
   line-height: 1.3;
   letter-spacing: -0.01em;
@@ -605,9 +609,12 @@ a {
 .contact-grid {
   display: grid;
   grid-template-columns: 5fr 6fr;
-  column-gap: clamp(28px, 4.5vw, 72px);
-  row-gap: clamp(22px, 2.6vw, 34px);
-  margin-top: clamp(40px, 5vw, 76px);
+  column-gap: clamp(36px, 6vw, 104px);
+  row-gap: clamp(34px, 4.4vw, 62px);
+  margin-top: clamp(56px, 7vw, 112px);
+  /* Short of the sheet's full width. The name runs the page; the index
+     under it keeps a margin of empty paper to its right. */
+  max-width: 1010px;
 }
 
 /* The addresses are the point of the page, so they take the right-hand
@@ -635,7 +642,7 @@ a {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
-  padding: 16px 0 4px;
+  padding: 13px 0 2px;
   color: inherit;
   text-decoration: none;
 }
@@ -652,18 +659,18 @@ a {
 /* The two that are facts: set at reading size, not display size. */
 .contact-line {
   display: block;
-  margin-top: 14px;
+  margin-top: 9px;
   font-size: clamp(16px, 1.65vw, 21px);
-  line-height: 1.35;
+  line-height: 1.25;
   letter-spacing: -0.005em;
 }
 
 .contact-note {
   display: block;
   grid-column: 1 / 2;
-  margin-top: 8px;
+  margin-top: 5px;
   font-size: clamp(13px, 1.15vw, 15px);
-  line-height: 1.5;
+  line-height: 1.4;
   letter-spacing: 0.015em;
   color: var(--muted);
   transition: transform 0.5s var(--settle), color 0.4s var(--soft);
@@ -677,7 +684,7 @@ a {
 .contact-value {
   display: inline-block;
   position: relative;
-  margin-top: 12px;
+  margin-top: 8px;
   font-size: clamp(26px, 3.4vw, 44px);
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -714,7 +721,7 @@ a {
   grid-column: 2;
   grid-row: 2;
   align-self: center;
-  margin-top: 12px;
+  margin-top: 8px;
   font-size: 22px;
   line-height: 1;
   color: var(--accent);
@@ -761,7 +768,7 @@ a {
    is under the cursor, so the page at rest is still just type. */
 .contact-copy {
   position: absolute;
-  top: 12px;
+  top: 9px;
   right: 0;
   padding: 2px 0 2px 16px;
   background: none;
@@ -858,7 +865,8 @@ a {
 @media (max-width: 860px) {
   .contact-grid {
     grid-template-columns: 1fr;
-    row-gap: clamp(20px, 4vw, 30px);
+    row-gap: clamp(26px, 6vw, 40px);
+    max-width: none;
   }
 
   .contact-item--mail,
