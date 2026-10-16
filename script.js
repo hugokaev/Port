@@ -388,3 +388,60 @@ PHOTOS.sort((a, b) => {
     root.classList.remove("cursor-over", "cursor-down");
   }, { passive: true });
 })();
+
+// The time in London under the office hours, and whether that time
+// falls inside them. The hours themselves are printed above it in the
+// markup; this only reads the clock and says which side of them we are
+// on, so the two can never disagree about what the hours are.
+(function () {
+  const el = document.getElementById("contactClock");
+  if (!el) return;
+
+  const OPENS = 10, CLOSES = 18;          // as printed above: 10am to 6pm
+  const DAY = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+
+  // Asked of London rather than of the reader's own clock, so it reads
+  // the same in Los Angeles, and so that British Summer Time is the
+  // browser's problem rather than a number written into the page.
+  const when = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  function face(h, m) {
+    const suffix = h < 12 ? "am" : "pm";
+    const hour = h % 12 === 0 ? 12 : h % 12;
+    return hour + ":" + String(m).padStart(2, "0") + suffix;
+  }
+
+  function tick() {
+    const parts = {};
+    for (const p of when.formatToParts(new Date())) parts[p.type] = p.value;
+
+    const day = DAY[parts.weekday];
+    const h = Number(parts.hour) % 24;
+    const m = Number(parts.minute);
+    if (day === undefined || Number.isNaN(h)) return;
+
+    const weekday = day >= 1 && day <= 5;
+    const open = weekday && h >= OPENS && h < CLOSES;
+
+    let tail;
+    if (open) {
+      tail = '<span class="contact-open">Open now</span>';
+    } else {
+      const next = weekday && h < OPENS ? "later today"
+                 : day >= 1 && day <= 4 ? "tomorrow"
+                 : "Monday";
+      tail = "Closed &mdash; opens " + next;
+    }
+
+    el.innerHTML = face(h, m) + " in London &middot; " + tail;
+  }
+
+  tick();
+  setInterval(tick, 30000);
+})();

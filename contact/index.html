@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="../favicon.png">
-<link rel="stylesheet" href="../style.css?v=52">
+<link rel="stylesheet" href="../style.css?v=53">
 </head>
 <body>
 
@@ -42,34 +42,41 @@
 
     <!-- The name is the page's anchor and also its h1. -->
     <h1 class="contact-name">Hugo Kae</h1>
+    <p class="contact-role">Fashion &amp; Portrait Photographer</p>
 
+    <!-- Four blocks of the same shape: a small label, a line, and a
+         quieter line under it. Two of them happen to be links. Source
+         order puts the addresses first, which is the order a phone
+         reads them in; the grid places them on the right on a wide
+         screen. -->
     <div class="contact-grid">
 
-      <div class="contact-who">
-        <p class="contact-role">Fashion &amp; Portrait Photographer</p>
-        <p class="contact-base">London, UK &mdash; Available internationally</p>
+      <a class="contact-item contact-item--link contact-item--mail" href="mailto:mina@hugokae.com">
+        <span class="contact-kind">bookings &amp; enquiries</span>
+        <!-- data-text is the pink copy that wipes across on hover. -->
+        <span class="contact-value" data-text="mina@hugokae.com">mina@hugokae.com</span>
+        <span class="contact-note">Mina Voss &mdash; Management</span>
+        <span class="contact-go" aria-hidden="true">&#8594;</span>
+      </a>
 
-        <div class="contact-hours">
-          <span class="contact-kind">office hours</span>
-          <p class="contact-when">Monday &ndash; Friday, 10am &ndash; 6pm GMT</p>
-          <p class="contact-when contact-when--quiet">Closed at weekends</p>
-        </div>
+      <a class="contact-item contact-item--link contact-item--social" href="https://instagram.com/hugokae_" target="_blank" rel="noopener noreferrer">
+        <span class="contact-kind">instagram</span>
+        <span class="contact-value" data-text="@hugokae_">@hugokae_</span>
+        <span class="contact-go" aria-hidden="true">&#8599;</span>
+      </a>
+
+      <div class="contact-item contact-item--based">
+        <span class="contact-kind">based</span>
+        <span class="contact-line">London, UK</span>
+        <span class="contact-note">Available internationally</span>
       </div>
 
-      <div class="contact-ways">
-        <a class="contact-row" href="mailto:mina@hugokae.com">
-          <span class="contact-kind">bookings &amp; enquiries</span>
-          <!-- data-text is the pink copy that wipes across on hover. -->
-          <span class="contact-value" data-text="mina@hugokae.com">mina@hugokae.com</span>
-          <span class="contact-go" aria-hidden="true">&#8594;</span>
-          <span class="contact-person">Mina Voss &mdash; Management</span>
-        </a>
-
-        <a class="contact-row contact-row--aside" href="https://instagram.com/hugokae_" target="_blank" rel="noopener noreferrer">
-          <span class="contact-kind">instagram</span>
-          <span class="contact-value" data-text="@hugokae_">@hugokae_</span>
-          <span class="contact-go" aria-hidden="true">&#8599;</span>
-        </a>
+      <div class="contact-item contact-item--hours">
+        <span class="contact-kind">office hours</span>
+        <span class="contact-line">Monday &ndash; Friday, 10am &ndash; 6pm</span>
+        <!-- Filled in by script.js with the time in London and whether
+             that falls inside the hours above. -->
+        <span class="contact-note" id="contactClock">London time</span>
       </div>
 
     </div>
@@ -77,6 +84,6 @@
 </main>
 
 
-<script src="../script.js?v=40"></script>
+<script src="../script.js?v=41"></script>
 </body>
 </html>

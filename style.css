@@ -544,17 +544,18 @@ a {
 }
 
 /* ---------- contact page ---------- */
-/* A masthead rather than a centred list: the name set as large as the
-   page will take, a rule under it, and then two columns — who he is on
-   the left, how to reach him on the right. The page is anchored to the
-   left margin like a printed page rather than floating in the middle of
-   the window. */
+/* A masthead and a four-part index. The name is set as large as the
+   width will take, with the trade under it, and then four blocks of
+   exactly the same shape — a small label, a line, and a quieter line
+   beneath — laid two by two. Two of them are links and behave like it;
+   the other two are facts and sit still. Everything is anchored to the
+   left margin, like a printed page rather than a centred card. */
 
 .contact-main {
   flex: 1;
   display: flex;
   align-items: center;
-  padding: clamp(110px, 16vh, 190px) clamp(24px, 5vw, 72px) clamp(60px, 10vh, 110px);
+  padding: clamp(104px, 15vh, 180px) clamp(24px, 5vw, 72px) clamp(52px, 9vh, 104px);
   position: relative;
 }
 
@@ -563,116 +564,52 @@ a {
   max-width: 1240px;
 }
 
-/* As large as it will go without the descender of the g fouling the
-   rule below it; the rule is the masthead's, so it runs the full width
-   rather than the width of the word. */
 .contact-name {
   margin: 0;
-  padding-bottom: clamp(22px, 3.2vw, 44px);
-  border-bottom: 1px solid var(--border);
   font-size: clamp(50px, 10.5vw, 148px);
   font-weight: 400;
   line-height: 0.92;
   letter-spacing: -0.045em;
 }
 
-/* 5:6 rather than even, so the addresses — the point of the page — take
-   the larger half. */
+.contact-role {
+  margin: clamp(14px, 1.6vw, 22px) 0 0;
+  font-size: clamp(16px, 1.75vw, 23px);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+}
+
 .contact-grid {
   display: grid;
   grid-template-columns: 5fr 6fr;
-  gap: clamp(28px, 5vw, 80px);
-  align-items: start;
-  margin-top: clamp(26px, 3.4vw, 44px);
+  column-gap: clamp(28px, 4.5vw, 72px);
+  row-gap: clamp(22px, 2.6vw, 34px);
+  margin-top: clamp(40px, 5vw, 76px);
 }
 
-/* Lines the first line of type up with the first label across the gap:
-   both sit on the same cap height rather than on the same box edge. */
-.contact-who {
-  /* The row on the right starts with a rule and 18px of padding before
-     its label; this drops the first line on the left by the same amount
-     so the two columns start on one line of type rather than on two
-     different box edges. */
-  padding-top: 17px;
-}
+/* The addresses are the point of the page, so they take the right-hand
+   column and the larger half of it; the facts sit on the left. Written
+   out rather than left to source order, because the order a phone wants
+   — addresses first — is not the order the grid wants. */
+.contact-item--mail   { grid-column: 2; grid-row: 1; }
+.contact-item--social { grid-column: 2; grid-row: 2; }
+.contact-item--based  { grid-column: 1; grid-row: 1; }
+.contact-item--hours  { grid-column: 1; grid-row: 2; }
 
-.contact-role {
-  margin: 0;
-  font-size: clamp(15px, 1.5vw, 19px);
-  line-height: 1.45;
-  letter-spacing: -0.005em;
-  color: var(--ink);
-}
-
-.contact-base {
-  margin: 10px 0 0;
-  font-size: clamp(13px, 1.15vw, 15px);
-  line-height: 1.5;
-  letter-spacing: 0.015em;
-  color: var(--muted);
-}
-
-/* Set off from the two lines above it by space alone, and headed with
-   the same small label the addresses use, so the left column reads as
-   its own short list rather than as a paragraph that kept going. */
-.contact-hours {
-  margin-top: clamp(30px, 3.4vw, 46px);
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-
-.contact-when {
-  margin: 0;
-  font-size: clamp(15px, 1.5vw, 19px);
-  line-height: 1.45;
-  letter-spacing: -0.005em;
-  color: var(--ink);
-}
-
-.contact-when--quiet {
-  margin-top: 6px;
-  font-size: clamp(13px, 1.15vw, 15px);
-  line-height: 1.5;
-  letter-spacing: 0.015em;
-  color: var(--muted);
-}
-
-/* The address and its mark share a row so the mark tracks the type's
-   centre at any size, rather than being held at a fixed offset tuned to
-   one of them. */
-.contact-row {
+/* One shape, used four times. The padding is uneven on purpose: the
+   label is set in capitals, whose tops sit about 4px inside the top of
+   their line box, so an even one would leave every block riding high
+   under its rule. */
+.contact-item {
   display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
+  grid-template-columns: 1fr auto;
+  align-items: start;
   position: relative;
-  /* Uneven on purpose. The label is set in capitals, whose tops sit
-     about 4px inside the top of their line box, while the address below
-     hangs its descenders about 3px past the bottom of its own. Equal
-     padding therefore leaves the type riding high between the rules. */
-  padding: 18px 0 26px;
+  padding: 16px 0 4px;
   border-top: 1px solid var(--border);
-  transition: color 0.4s var(--soft);
-}
-
-.contact-row:last-child {
-  border-bottom: 1px solid var(--border);
-}
-
-/* The rule above the row redraws in pink, left to right. */
-.contact-row::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: -1px;
-  height: 1px;
-  width: 0;
-  background: var(--accent);
-  transition: width 0.55s var(--settle);
-}
-
-.contact-row:hover::after,
-.contact-row:focus-visible::after {
-  width: 100%;
+  color: inherit;
+  text-decoration: none;
 }
 
 .contact-kind {
@@ -681,9 +618,30 @@ a {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--faint);
-  margin-bottom: 10px;
   transition: color 0.4s ease;
 }
+
+/* The two that are facts: set at reading size, not display size. */
+.contact-line {
+  display: block;
+  margin-top: 14px;
+  font-size: clamp(16px, 1.65vw, 21px);
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+
+.contact-note {
+  display: block;
+  grid-column: 1 / 2;
+  margin-top: 8px;
+  font-size: clamp(13px, 1.15vw, 15px);
+  line-height: 1.5;
+  letter-spacing: 0.015em;
+  color: var(--muted);
+  transition: transform 0.5s var(--settle), color 0.4s var(--soft);
+}
+
+/* --- the two that are links --- */
 
 /* inline-block so the box hugs the glyphs — the wipe below measures
    itself against this width, and a full-row box would finish the sweep
@@ -691,7 +649,8 @@ a {
 .contact-value {
   display: inline-block;
   position: relative;
-  font-size: clamp(26px, 3.6vw, 46px);
+  margin-top: 12px;
+  font-size: clamp(26px, 3.4vw, 44px);
   line-height: 1.05;
   letter-spacing: -0.03em;
   transition: transform 0.5s var(--settle);
@@ -711,47 +670,23 @@ a {
   transition: width 0.6s var(--settle);
 }
 
-.contact-row:hover .contact-value::after,
-.contact-row:focus-visible .contact-value::after {
-  width: 100%;
-}
-
-.contact-row:hover .contact-kind,
-.contact-row:focus-visible .contact-kind {
-  color: var(--accent);
-}
-
-.contact-row:hover .contact-value,
-.contact-row:focus-visible .contact-value {
-  transform: translateX(22px);
-}
-
-/* Who the booking address belongs to. Set at the weight of the line
-   under the name on the other side of the page, so the two small lines
-   answer each other across the gap. */
-.contact-person {
-  grid-column: 1 / 2;
-  margin-top: 12px;
-  font-size: clamp(13px, 1.15vw, 15px);
-  line-height: 1.5;
-  letter-spacing: 0.015em;
-  color: var(--muted);
-  transition: transform 0.5s var(--settle), color 0.4s var(--soft);
-}
-
-/* It travels with the address, so the entry moves as one piece. */
-.contact-row:hover .contact-person,
-.contact-row:focus-visible .contact-person {
-  transform: translateX(22px);
-  color: var(--ink);
-}
-
-@media (hover: none) {
-  .contact-row:hover .contact-person { transform: none; }
+/* The rule above the block redraws in pink, left to right. */
+.contact-item--link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 1px;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.55s var(--settle);
 }
 
 .contact-go {
-  justify-self: end;
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+  margin-top: 12px;
   font-size: 22px;
   line-height: 1;
   color: var(--accent);
@@ -760,49 +695,94 @@ a {
   transition: opacity 0.45s ease, transform 0.55s var(--settle);
 }
 
-.contact-row:hover .contact-go,
-.contact-row:focus-visible .contact-go {
-  opacity: 1;
-  transform: none;
-}
+.contact-item--link:hover::after,
+.contact-item--link:focus-visible::after { width: 100%; }
+
+.contact-item--link:hover .contact-value::after,
+.contact-item--link:focus-visible .contact-value::after { width: 100%; }
+
+.contact-item--link:hover .contact-kind,
+.contact-item--link:focus-visible .contact-kind { color: var(--accent); }
+
+.contact-item--link:hover .contact-value,
+.contact-item--link:focus-visible .contact-value,
+.contact-item--link:hover .contact-note,
+.contact-item--link:focus-visible .contact-note { transform: translateX(20px); }
+
+.contact-item--link:hover .contact-note,
+.contact-item--link:focus-visible .contact-note { color: var(--ink); }
+
+.contact-item--link:hover .contact-go,
+.contact-item--link:focus-visible .contact-go { opacity: 1; transform: none; }
 
 /* Hover states do not survive a touchscreen — they latch on whatever
-   was tapped last — so the row stays as typed. */
+   was tapped last — so the block stays as typed. */
 @media (hover: none) {
-  .contact-row:hover .contact-value { transform: none; }
-  .contact-row:hover .contact-value::after { width: 0; }
-  .contact-row:hover .contact-go { opacity: 0; }
+  .contact-item--link:hover .contact-value,
+  .contact-item--link:hover .contact-note { transform: none; }
+  .contact-item--link:hover .contact-value::after { width: 0; }
+  .contact-item--link:hover .contact-go { opacity: 0; }
 }
 
-/* Instagram is the lesser route: set smaller, and tucked up under the
-   booking address so the two read as one pair with a clear first line. */
-.contact-row--aside {
-  padding-top: 10px;
-  padding-bottom: 24px;
+/* Instagram is the lesser route, so it is set smaller. */
+.contact-item--social .contact-value { font-size: clamp(20px, 2.3vw, 29px); }
+.contact-item--social .contact-go { font-size: 17px; }
+
+/* Whether the office is open at this moment, worked out from the hours
+   printed above it. A dot rather than a word doing the work twice. */
+.contact-open::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: 1px;
 }
 
-.contact-row--aside .contact-kind {
-  margin-bottom: 12px;
+/* --- arriving --- */
+/* The page settles in rather than appearing whole: the name first, then
+   each block a beat behind the last. */
+@keyframes contact-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
 }
 
-.contact-row--aside .contact-value {
-  font-size: clamp(19px, 2.3vw, 29px);
+.contact-name,
+.contact-role,
+.contact-item {
+  animation: contact-rise 0.62s var(--settle) both;
 }
 
-.contact-row--aside .contact-go {
-  font-size: 17px;
+.contact-role { animation-delay: 0.06s; }
+.contact-item--based  { animation-delay: 0.12s; }
+.contact-item--mail   { animation-delay: 0.18s; }
+.contact-item--hours  { animation-delay: 0.24s; }
+.contact-item--social { animation-delay: 0.3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-name,
+  .contact-role,
+  .contact-item {
+    animation: none;
+  }
 }
 
-/* One column once the two would be too narrow to hold an address, with
-   the name's rule carrying the break instead of the gap. */
+/* One column once the two would be too narrow to hold an address. The
+   links lead, since that is what the page is for. */
 @media (max-width: 860px) {
   .contact-grid {
     grid-template-columns: 1fr;
-    gap: clamp(26px, 5vw, 40px);
+    row-gap: clamp(20px, 4vw, 30px);
   }
 
-  .contact-who {
-    padding-top: 0;
+  .contact-item--mail,
+  .contact-item--social,
+  .contact-item--based,
+  .contact-item--hours {
+    grid-column: 1;
+    grid-row: auto;
   }
 }
 
@@ -894,14 +874,7 @@ a {
     padding: 92px 20px 48px;
   }
 
-  .contact-row {
-    padding: 15px 0 22px;   /* the same correction, at phone sizes */
-  }
-
-  /* Restated because the rule above resets the shorthand, which would
-     otherwise flatten the hierarchy to a single spacing on phones. */
-  .contact-row--aside {
-    padding-top: 8px;
-    padding-bottom: 20px;
+  .contact-item {
+    padding-top: 14px;
   }
 }
