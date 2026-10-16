@@ -93,6 +93,7 @@ a {
 }
 
 .nav-link {
+  position: relative;
   font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -103,9 +104,31 @@ a {
               opacity 0.3s var(--soft);
 }
 
-.nav-link:hover {
-  border-bottom-color: var(--ink);
-  opacity: 0.7;
+.nav-link::after,
+.contact-btn::after,
+.site-name::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 0;
+  background: currentColor;
+  transition: width 0.4s var(--settle);
+}
+
+.nav-link:hover::after,
+.nav-link:focus-visible::after,
+.contact-btn:hover::after,
+.contact-btn:focus-visible::after,
+.site-name:hover::after,
+.site-name:focus-visible::after {
+  width: 100%;
+}
+
+/* The page you are already on is not a destination. */
+.nav-link.is-active::after {
+  content: none;
 }
 
 .nav-link.is-active {
@@ -114,6 +137,7 @@ a {
 }
 
 .contact-btn {
+  position: relative;
   font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -124,12 +148,10 @@ a {
               opacity 0.3s var(--soft);
 }
 
-.contact-btn:hover {
-  border-bottom-color: var(--ink);
-  opacity: 0.7;
-}
+
 
 .site-name {
+  position: relative;
   font-weight: 500;
   font-size: 17px;
   letter-spacing: -0.02em;
@@ -602,12 +624,18 @@ a {
    their line box, so an even one would leave every block riding high
    under its rule. */
 .contact-item {
+  position: relative;
+  border-top: 1px solid var(--border);
+}
+
+/* The block's own contents. A link in two of the four, a plain box in
+   the others, so that the copy button can sit beside the link rather
+   than inside it — a button nested in a link is neither. */
+.contact-body {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
-  position: relative;
   padding: 16px 0 4px;
-  border-top: 1px solid var(--border);
   color: inherit;
   text-decoration: none;
 }
@@ -696,24 +724,24 @@ a {
 }
 
 .contact-item--link:hover::after,
-.contact-item--link:focus-visible::after { width: 100%; }
+.contact-item--link:focus-within::after { width: 100%; }
 
 .contact-item--link:hover .contact-value::after,
-.contact-item--link:focus-visible .contact-value::after { width: 100%; }
+.contact-item--link:focus-within .contact-value::after { width: 100%; }
 
 .contact-item--link:hover .contact-kind,
-.contact-item--link:focus-visible .contact-kind { color: var(--accent); }
+.contact-item--link:focus-within .contact-kind { color: var(--accent); }
 
 .contact-item--link:hover .contact-value,
-.contact-item--link:focus-visible .contact-value,
+.contact-item--link:focus-within .contact-value,
 .contact-item--link:hover .contact-note,
-.contact-item--link:focus-visible .contact-note { transform: translateX(20px); }
+.contact-item--link:focus-within .contact-note { transform: translateX(20px); }
 
 .contact-item--link:hover .contact-note,
-.contact-item--link:focus-visible .contact-note { color: var(--ink); }
+.contact-item--link:focus-within .contact-note { color: var(--ink); }
 
 .contact-item--link:hover .contact-go,
-.contact-item--link:focus-visible .contact-go { opacity: 1; transform: none; }
+.contact-item--link:focus-within .contact-go { opacity: 1; transform: none; }
 
 /* Hover states do not survive a touchscreen — they latch on whatever
    was tapped last — so the block stays as typed. */
@@ -727,6 +755,62 @@ a {
 /* Instagram is the lesser route, so it is set smaller. */
 .contact-item--social .contact-value { font-size: clamp(20px, 2.3vw, 29px); }
 .contact-item--social .contact-go { font-size: 17px; }
+
+/* Takes the empty right-hand end of the label line, which is the one
+   place in the block with room for it. It is only drawn once the block
+   is under the cursor, so the page at rest is still just type. */
+.contact-copy {
+  position: absolute;
+  top: 12px;
+  right: 0;
+  padding: 2px 0 2px 16px;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--faint);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.4s var(--soft), transform 0.5s var(--settle),
+              color 0.3s var(--soft);
+}
+
+.contact-item--mail:hover .contact-copy,
+.contact-item--mail:focus-within .contact-copy,
+.contact-copy:focus-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.contact-copy:hover,
+.contact-copy:focus-visible {
+  color: var(--ink);
+}
+
+.contact-copy.is-done {
+  color: var(--accent);
+  opacity: 1;
+  transform: none;
+}
+
+/* Each letter of the name lifts as the cursor passes over it, and takes
+   its neighbours part of the way with it. Split into letters by
+   script.js, so the heading is one word to anything that reads it. */
+.contact-letter {
+  display: inline-block;
+  transition: transform 0.42s var(--settle);
+}
+
+.contact-letter:hover {
+  transform: translateY(-0.085em);
+}
+
+.contact-letter:hover + .contact-letter,
+.contact-letter:has(+ .contact-letter:hover) {
+  transform: translateY(-0.042em);
+}
 
 /* Whether the office is open at this moment, worked out from the hours
    printed above it. A dot rather than a word doing the work twice. */

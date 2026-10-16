@@ -445,3 +445,63 @@ PHOTOS.sort((a, b) => {
   tick();
   setInterval(tick, 30000);
 })();
+
+// Two small things the contact page can do once there is script to do
+// them with: copy the address without opening a mail client, and let
+// the name answer the cursor.
+(function () {
+  const mail = document.querySelector(".contact-item--mail");
+
+  // Only offered where it can actually be done. A button that silently
+  // fails is worse than no button, and the clipboard is unavailable on
+  // an insecure origin and in some browsers outright.
+  if (mail && navigator.clipboard && navigator.clipboard.writeText) {
+    const address = mail.dataset.copy;
+    const button = document.createElement("button");
+    button.className = "contact-copy";
+    button.type = "button";
+    button.setAttribute("aria-label", "Copy " + address);
+    const word = document.createElement("span");
+    word.textContent = "Copy";
+    // Announced rather than only drawn, since the only sign that it
+    // worked is the word changing.
+    word.setAttribute("aria-live", "polite");
+    button.appendChild(word);
+    mail.appendChild(button);
+
+    let undo = 0;
+    button.addEventListener("click", () => {
+      navigator.clipboard.writeText(address).then(() => {
+        button.classList.add("is-done");
+        word.textContent = "Copied";
+        clearTimeout(undo);
+        undo = setTimeout(() => {
+          button.classList.remove("is-done");
+          word.textContent = "Copy";
+        }, 1900);
+      }, () => { /* refused: say nothing rather than lie */ });
+    });
+  }
+
+  // The name, letter by letter. Done here rather than in the markup so
+  // the heading stays one word to a search engine or a screen reader
+  // until the moment it is any use, and is skipped outright for anyone
+  // who has asked for less movement.
+  const name = document.querySelector(".contact-name");
+  if (!name) return;
+  if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const text = name.textContent;
+  name.textContent = "";
+  for (const ch of text) {
+    if (ch === " ") {
+      name.appendChild(document.createTextNode(" "));
+      continue;
+    }
+    const span = document.createElement("span");
+    span.className = "contact-letter";
+    span.textContent = ch;
+    name.appendChild(span);
+  }
+})();
