@@ -581,7 +581,9 @@ a {
 }
 
 .contact-base {
-  margin: 5px 0 0;
+  /* A pair with the line above it: close enough to read as one block,
+     and clear of it. */
+  margin: 3px 0 0;
   font-size: 13px;
   letter-spacing: 0.03em;
   color: var(--muted);
@@ -595,7 +597,12 @@ a {
   grid-template-columns: auto 1fr;
   align-items: center;
   position: relative;
-  padding: 30px 0;
+  /* Uneven on purpose. The label is set in capitals, whose tops sit
+     about 4px inside the top of their line box, while the address below
+     hangs its descenders about 3px past the bottom of its own. Equal
+     padding therefore left the type riding high between the rules;
+     these two numbers put 30px of real space above it and below it. */
+  padding: 25px 0 33px;
   border-top: 1px solid var(--border);
   transition: color 0.4s var(--soft);
 }
@@ -702,7 +709,14 @@ a {
    it, so the booking address reads as the way in without the second
    entry looking like an afterthought. */
 .contact-row--aside {
-  padding-top: 46px;
+  padding-top: 40px;   /* 45px of real space: half again above the rest */
+  /* Its address is set smaller, so it hangs less below its line box and
+     needs a little less padding to leave the same 30px below the ink. */
+  padding-bottom: 31px;
+}
+
+.contact-row--aside .contact-kind {
+  margin-bottom: 14px; /* same reason, above: matches the row's own 22px */
 }
 
 .contact-row--aside .contact-value {
@@ -802,13 +816,13 @@ a {
   }
 
   .contact-row {
-    padding: 22px 0;
+    padding: 18px 0 26px;   /* the same correction, at phone sizes */
   }
 
   /* Restated because the rule above resets the shorthand, which would
      otherwise flatten the hierarchy to a single spacing on phones. */
   .contact-row--aside {
-    padding-top: 34px;
+    padding-top: 29px;
   }
 
   .contact-intro {
