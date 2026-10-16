@@ -609,12 +609,13 @@ a {
 .contact-grid {
   display: grid;
   grid-template-columns: 5fr 6fr;
-  column-gap: clamp(36px, 6vw, 104px);
-  row-gap: clamp(34px, 4.4vw, 62px);
-  margin-top: clamp(56px, 7vw, 112px);
-  /* Short of the sheet's full width. The name runs the page; the index
-     under it keeps a margin of empty paper to its right. */
-  max-width: 1010px;
+  /* Close together on purpose: the four entries are one short index,
+     not four sections, so they are set as a block and the space is left
+     around them instead of between them. */
+  column-gap: clamp(24px, 3.2vw, 54px);
+  row-gap: clamp(16px, 1.8vw, 26px);
+  margin-top: clamp(40px, 4.6vw, 70px);
+  max-width: 860px;
 }
 
 /* The addresses are the point of the page, so they take the right-hand
@@ -642,7 +643,7 @@ a {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
-  padding: 13px 0 2px;
+  padding: 11px 0 0;
   color: inherit;
   text-decoration: none;
 }
@@ -659,8 +660,8 @@ a {
 /* The two that are facts: set at reading size, not display size. */
 .contact-line {
   display: block;
-  margin-top: 9px;
-  font-size: clamp(16px, 1.65vw, 21px);
+  margin-top: 7px;
+  font-size: clamp(15px, 1.5vw, 19px);
   line-height: 1.25;
   letter-spacing: -0.005em;
 }
@@ -668,7 +669,7 @@ a {
 .contact-note {
   display: block;
   grid-column: 1 / 2;
-  margin-top: 5px;
+  margin-top: 4px;
   font-size: clamp(13px, 1.15vw, 15px);
   line-height: 1.4;
   letter-spacing: 0.015em;
@@ -684,8 +685,8 @@ a {
 .contact-value {
   display: inline-block;
   position: relative;
-  margin-top: 8px;
-  font-size: clamp(26px, 3.4vw, 44px);
+  margin-top: 6px;
+  font-size: clamp(24px, 3vw, 38px);
   line-height: 1.05;
   letter-spacing: -0.03em;
   transition: transform 0.5s var(--settle);
@@ -721,7 +722,7 @@ a {
   grid-column: 2;
   grid-row: 2;
   align-self: center;
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: 22px;
   line-height: 1;
   color: var(--accent);
@@ -760,7 +761,7 @@ a {
 }
 
 /* Instagram is the lesser route, so it is set smaller. */
-.contact-item--social .contact-value { font-size: clamp(20px, 2.3vw, 29px); }
+.contact-item--social .contact-value { font-size: clamp(19px, 2.1vw, 26px); }
 .contact-item--social .contact-go { font-size: 17px; }
 
 /* Takes the empty right-hand end of the label line, which is the one
@@ -768,7 +769,7 @@ a {
    is under the cursor, so the page at rest is still just type. */
 .contact-copy {
   position: absolute;
-  top: 9px;
+  top: 7px;
   right: 0;
   padding: 2px 0 2px 16px;
   background: none;
@@ -865,7 +866,7 @@ a {
 @media (max-width: 860px) {
   .contact-grid {
     grid-template-columns: 1fr;
-    row-gap: clamp(26px, 6vw, 40px);
+    row-gap: clamp(18px, 4vw, 28px);
     max-width: none;
   }
 
