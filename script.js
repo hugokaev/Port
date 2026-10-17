@@ -1,3 +1,27 @@
+// Take the address bar back. A link shared from Instagram arrives
+// carrying utm_source, fbclid and a hundred characters of click id —
+// none of it anything this site reads. Rather than list every tracking
+// parameter ever invented, keep the one parameter the site actually
+// uses and drop everything else, so the bar reads hugokae.com however
+// the link was handed around.
+(function () {
+  const KEEPS = ["i"];                 // which photo to open, and nothing else
+  try {
+    const url = new URL(location.href);
+    let dropped = false;
+    for (const key of [...url.searchParams.keys()]) {
+      if (KEEPS.indexOf(key) === -1) {
+        url.searchParams.delete(key);
+        dropped = true;
+      }
+    }
+    // The fragment is nobody's business either, unless it is ours.
+    const hash = url.hash && url.hash !== "#" ? url.hash : "";
+    if (!dropped && hash === url.hash) return;
+    history.replaceState(history.state, "", url.pathname + url.search + hash);
+  } catch (e) { /* no history to rewrite: leave it as it came */ }
+})();
+
 // Edit this list to add, remove or reorder photos.
 // "src" must point to an image in the images/ folder.
 // "title" contains the caption (filename after Value(number))
@@ -89,12 +113,24 @@ PHOTOS.sort((a, b) => {
 
   const figure = document.querySelector(".gallery-figure");
 
+  // Say in the address bar which photo is actually on screen. Stepping
+  // through the set used to leave the first photo's number behind in
+  // the URL, so copying it sent somebody to a different picture. The
+  // first photo is simply the site, so it carries no parameter at all.
+  function mark() {
+    try {
+      const url = location.pathname + (index === 0 ? "" : "?i=" + index);
+      history.replaceState(history.state, "", url);
+    } catch (e) { /* nothing to rewrite */ }
+  }
+
   function show(i) {
     // Read the direction before the wrap, so stepping off either end
     // still travels the way you asked rather than snapping back.
     const dir = i > index ? 1 : i < index ? -1 : 0;
     index = (i + PHOTOS.length) % PHOTOS.length;
     const photo = PHOTOS[index];
+    mark();
 
     if (dir && figure) {
       figure.classList.remove("from-right", "from-left");
