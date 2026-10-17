@@ -10,6 +10,9 @@
      and is the house curve; --leave accelerates away for anything
      exiting; --soft is for small fades. */
   --settle: cubic-bezier(0.16, 1, 0.3, 1);
+  /* One movement, two directions: out of rest, and back into it. */
+  --bar-away: cubic-bezier(0.35, 0, 0.8, 0.4);
+  --bar-back: cubic-bezier(0.17, 0.89, 0.32, 1);
   --leave: cubic-bezier(0.5, 0, 0.9, 0.9);
   --soft: cubic-bezier(0.2, 0, 0.2, 1);
 }
@@ -472,10 +475,18 @@ a {
 }
 
 /* The bar leaves a piece at a time rather than all at once, and in the
-   order you read it. */
+   order you read it.
+   
+   It goes soft as it goes: a few pixels of blur alongside the fade, so
+   each word dissolves rather than being switched off, and only a short
+   drift — 5px — because distance is what makes a short move look like a
+   jump. Both directions are the same movement, one eased out of rest
+   and the other eased into it, rather than the two different curves
+   this had before. */
 .topbar-left > *,
 .contact-btn {
-  transition: opacity 0.32s var(--leave), transform 0.32s var(--leave),
+  transition: opacity 0.38s var(--bar-away), transform 0.38s var(--bar-away),
+              filter 0.38s var(--bar-away),
               color 0.3s var(--soft), border-color 0.3s var(--soft),
               background-color 0.3s var(--soft);
 }
@@ -490,32 +501,35 @@ a {
 .is-zooming-out .topbar-left > *,
 .is-zooming-out .contact-btn {
   opacity: 0;
-  transform: translateY(-9px);
+  transform: translateY(-5px);
+  filter: blur(4px);
 }
 
 .is-leaving .topbar-left > *:nth-child(2),
 .is-zooming-in .topbar-left > *:nth-child(2),
-.is-zooming-out .topbar-left > *:nth-child(2) { transition-delay: 0.05s; }
+.is-zooming-out .topbar-left > *:nth-child(2) { transition-delay: 0.06s; }
 
 .is-leaving .contact-btn,
 .is-zooming-in .contact-btn,
-.is-zooming-out .contact-btn { transition-delay: 0.1s; }
+.is-zooming-out .contact-btn { transition-delay: 0.12s; }
 
 /* And arrives the same way round, under whatever the page itself is
    doing. Backwards rather than both, so the transition above can still
    take the element away once this has finished with it. */
 @keyframes bar-in {
-  from { opacity: 0; transform: translateY(-9px); }
-  to   { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translateY(-5px); filter: blur(4px); }
+  to   { opacity: 1; transform: none;             filter: blur(0); }
 }
 
+/* Longer coming in than going out, and on a curve that arrives almost
+   standing still, so the words seem to settle rather than stop. */
 .topbar-left > *,
 .contact-btn {
-  animation: bar-in 0.5s var(--settle) backwards;
+  animation: bar-in 0.78s var(--bar-back) backwards;
 }
 
-.topbar-left > *:nth-child(2) { animation-delay: 0.07s; }
-.contact-btn { animation-delay: 0.14s; }
+.topbar-left > *:nth-child(2) { animation-delay: 0.09s; }
+.contact-btn { animation-delay: 0.18s; }
 
 @media (prefers-reduced-motion: reduce) {
   .topbar-left > *,

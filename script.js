@@ -343,7 +343,10 @@ PHOTOS.sort((a, b) => {
       document.body.classList.add(
         link.dataset.zoom === "in" ? "is-zooming-in" : "is-zooming-out"
       );
-      setTimeout(() => { location.href = link.dataset.zoomTo; }, 370);
+      // Long enough for the view to finish pulling back and for the bar
+      // to finish leaving — 400ms and 500ms respectively. It used to cut
+      // at 370ms, with the last word of the bar still half on screen.
+      setTimeout(() => { location.href = link.dataset.zoomTo; }, 520);
     });
   });
 })();
