@@ -30,13 +30,15 @@ const PHOTOS = [
   { src: "images/web/Value(50)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp?v=815f4cfd", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7505 },
   { src: "images/web/Value(48)Chasing, 2026.webp?v=71b53fd5", title: "Chasing, 2026", ar: 0.7325 },
   { src: "images/web/Value(45)Audio, Fijolla, 2026.webp?v=732a716b", title: "Audio, Fijolla, 2026", ar: 0.7500 },
-  { src: "images/web/Value(44)C.Protocol.webp?v=a4545517", title: "C.Protocol", ar: 0.7096 },
   { src: "images/web/Value(41)Manon Servage, 2026.webp?v=70380b1a", title: "Manon Servage, 2026", ar: 0.7150 },
   { src: "images/web/Value(40)August Amenoff for ADOLF MALDONADO.webp?v=a8640c56", title: "August Amenoff for ADOLF MALDONADO", ar: 0.6671 },
+  { src: "images/web/Value(38)Flowers.webp?v=9cc2311f", title: "Flowers", ar: 0.5692 },
+  { src: "images/web/Value(37)Iris, 02.webp?v=bbd407cb", title: "Iris, 02", ar: 0.7325 },
   { src: "images/web/Value(35)Manon Servage for Volume, 2026.webp?v=9b372a8a", title: "Manon Servage for Volume, 2026", ar: 0.7550 },
   { src: "images/web/Value(34)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp?v=7c0fcd54", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7502 },
   { src: "images/web/Value(33)Chasing, 2026.webp?v=73ec6377", title: "Chasing, 2026", ar: 0.6667 },
   { src: "images/web/Value(32)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp?v=676c42a3", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7500 },
+  { src: "images/web/Value(31)C.Protocol.webp?v=a4545517", title: "C.Protocol", ar: 0.7096 },
   { src: "images/web/Value(30)Colour Series, 2026.webp?v=21f9630c", title: "Colour Series, 2026", ar: 0.7500 },
   { src: "images/web/Value(29)Chasing, 2026.webp?v=62480716", title: "Chasing, 2026", ar: 0.6667 },
   { src: "images/web/Value(28)ADOLF MALDONADO.webp?v=0f416a31", title: "ADOLF MALDONADO", ar: 0.6668 },
@@ -64,9 +66,11 @@ const PHOTOS = [
   { src: "images/web/Value(6)Unbearable Lightness, 2025.webp?v=12c1a673", title: "Unbearable Lightness, 2025", ar: 0.7348 },
   { src: "images/web/Value(5)Shout, 2025.webp?v=4a5e94bd", title: "Shout, 2025", ar: 0.6658 },
   { src: "images/web/Value(4)Morphed Series, 2024.webp?v=63ba2ff8", title: "Morphed Series, 2024", ar: 0.6667 },
+  { src: "images/web/Value(3)Iris.webp?v=e0164d93", title: "Iris", ar: 0.6671 },
   { src: "images/web/Value(2)Block, 2024.webp?v=db09423f", title: "Block, 2024", ar: 0.7348 },
   { src: "images/web/Value(2)Fur Legs, 2025.webp?v=b8e2ec1d", title: "Fur Legs, 2025", ar: 0.7471 },
   { src: "images/web/Value(1)Boot, 2024.webp?v=d20a9ffe", title: "Boot, 2024", ar: 0.7471 },
+  { src: "images/web/Value(0)Shoe.webp?v=8593936d", title: "Shoe", ar: 0.6908 },
 ];
 
 // Order always follows the Value(n) number in the filename, highest first.
