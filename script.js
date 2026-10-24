@@ -469,16 +469,20 @@ PHOTOS.sort((a, b) => {
     const m = Number(parts.minute);
     if (day === undefined || Number.isNaN(h)) return;
 
-    const weekday = day >= 1 && day <= 5;
-    const open = weekday && h >= OPENS && h < CLOSES;
+    // Monday to Saturday, as printed above. Sunday is the only day the
+    // office is shut outright.
+    const working = day >= 1 && day <= 6;
+    const open = working && h >= OPENS && h < CLOSES;
 
     let tail;
     if (open) {
       tail = '<span class="contact-open">Open now</span>';
     } else {
-      const next = weekday && h < OPENS ? "later today"
-                 : day >= 1 && day <= 4 ? "tomorrow"
-                 : "Monday";
+      // Before opening on a working day it opens again today; after
+      // closing it opens tomorrow, unless tomorrow is the Sunday.
+      const next = working && h < OPENS ? "later today"
+                 : day === 6 ? "Monday"
+                 : "tomorrow";
       tail = "Closed &mdash; opens " + next;
     }
 
