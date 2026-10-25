@@ -757,12 +757,6 @@ a {
   transition: transform 0.5s var(--settle), color 0.4s var(--soft);
 }
 
-/* A second quiet line, where a block has one: far enough from the line
-   above to read as its own remark rather than as a wrapped sentence. */
-.contact-note--aside {
-  margin-top: 9px;
-}
-
 /* --- the two that are links --- */
 
 /* inline-block so the box hugs the glyphs — the wipe below measures
