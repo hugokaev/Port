@@ -41,7 +41,6 @@ const PHOTOS = [
   { src: "images/web/Value(46)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp?v=7c0fcd54", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7502 },
   { src: "images/web/Value(45)Chasing, 2026.webp?v=73ec6377", title: "Chasing, 2026", ar: 0.6667 },
   { src: "images/web/Value(44)Freddie Taylor for Chatchai Chaitrakulthong, 2026.webp?v=676c42a3", title: "Freddie Taylor for Chatchai Chaitrakulthong, 2026", ar: 0.7500 },
-  { src: "images/web/Value(43)Boko Yout at the Scala.webp?v=6fdafbc9", title: "Boko Yout at the Scala", ar: 0.5933 },
   { src: "images/web/Value(42)C.Protocol.webp?v=a4545517", title: "C.Protocol", ar: 0.7096 },
   { src: "images/web/Value(41)Colour Series, 2026.webp?v=21f9630c", title: "Colour Series, 2026", ar: 0.7500 },
   { src: "images/web/Value(40)Chasing, 2026.webp?v=62480716", title: "Chasing, 2026", ar: 0.6667 },
@@ -84,7 +83,6 @@ const PHOTOS = [
   { src: "images/web/Value(3)Fur Legs, 2025.webp?v=b8e2ec1d", title: "Fur Legs, 2025", ar: 0.7471 },
   { src: "images/web/Value(2)Boot, 2024.webp?v=d20a9ffe", title: "Boot, 2024", ar: 0.7471 },
   { src: "images/web/Value(1)Boko Yout at the Scala.webp?v=0bca35b3", title: "Boko Yout at the Scala", ar: 1.4634 },
-  { src: "images/web/Value(0)Shoe.webp?v=8593936d", title: "Shoe", ar: 0.6908 },
 ];
 
 // Order always follows the Value(n) number in the filename, highest first.
